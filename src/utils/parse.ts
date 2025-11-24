@@ -1,5 +1,5 @@
-import YAML from "yaml";
-import { OpenApiSource } from "./type";
+import YAML from 'yaml';
+import { OpenApiSource } from './type';
 
 /**
  * Parse an OpenAPI spec from text.
@@ -9,14 +9,14 @@ import { OpenApiSource } from "./type";
 export function parseOpenApiSpec({ text, extension }: OpenApiSource) {
   let spec;
   switch (extension) {
-    case ".json":
+    case '.json':
       spec = JSON.parse(text);
-      console.log("✨ Parsed as JSON");
+      console.log('✨ Parsed as JSON');
       break;
-    case ".yaml":
-    case ".yml":
+    case '.yaml':
+    case '.yml':
       spec = YAML.parse(text);
-      console.log("✨ Parsed as YAML");
+      console.log('✨ Parsed as YAML');
       break;
     default:
       throw new Error(`❌ Unsupported file extension: ${extension}`);
@@ -32,12 +32,12 @@ export function parseOpenApiSpec({ text, extension }: OpenApiSource) {
  */
 export function getOpenApiVersion({ text, extension }: OpenApiSource) {
   switch (extension) {
-    case ".json":
+    case '.json':
       return JSON.parse(text)?.info?.version;
-    case ".yaml":
-    case ".yml":
+    case '.yaml':
+    case '.yml':
       return YAML.parse(text)?.info?.version;
     default:
-      throw new Error("Unknown file extension: " + extension);
+      throw new Error('Unknown file extension: ' + extension);
   }
 }

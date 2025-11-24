@@ -1,18 +1,17 @@
-import { fetchOpenApiSource } from "@/utils/fetch";
-import { editPackage, getPackageOpenApi } from "@/utils/package";
-import { getOpenApiVersion } from "@/utils/parse";
-import { createPatch } from "@/utils/patch";
-import { execSync } from "child_process";
+import { fetchOpenApiSource } from '@/utils/fetch';
+import { editPackage, getPackageOpenApi } from '@/utils/package';
+import { getOpenApiVersion } from '@/utils/parse';
+import { createPatch } from '@/utils/patch';
+import { execSync } from 'child_process';
 
 export async function ciCheck() {
-  const { version: pkgOpenApiVersion, source: pkgOpenApiSource } =
-    await getPackageOpenApi();
+  const { version: pkgOpenApiVersion, source: pkgOpenApiSource } = await getPackageOpenApi();
 
   const source = await fetchOpenApiSource(pkgOpenApiSource);
   const externalVersion = getOpenApiVersion(source);
 
   if (pkgOpenApiVersion === externalVersion) {
-    console.log("✅ Local patch is up to date.");
+    console.log('✅ Local patch is up to date.');
     return false;
   }
 
@@ -34,9 +33,9 @@ export async function ciUpdate() {
 }
 
 export async function ciGenerate() {
-  console.log("📦 Generating SDK with `pnpm run gen`...");
+  console.log('📦 Generating SDK with `pnpm run gen`...');
 
-  execSync("pnpm run gen", { stdio: "inherit" });
+  execSync('pnpm run gen', { stdio: 'inherit' });
 
-  console.log("✅ SDK generation complete.");
+  console.log('✅ SDK generation complete.');
 }

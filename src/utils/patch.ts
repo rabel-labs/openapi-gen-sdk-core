@@ -1,11 +1,11 @@
-import fs from "fs";
-import path from "path";
-import YAML from "yaml";
-import { parseOpenApiSpec } from "@/utils/parse";
-import { PATCHES_DIR } from "@/utils/const";
-import { getPackageOpenApi } from "@/utils/package";
-import { fetchOpenApiSource } from "@/utils/fetch";
-import { OpenApiSource } from "./type";
+import fs from 'fs';
+import path from 'path';
+import YAML from 'yaml';
+import { parseOpenApiSpec } from '@/utils/parse';
+import { PATCHES_DIR } from '@/utils/const';
+import { getPackageOpenApi } from '@/utils/package';
+import { fetchOpenApiSource } from '@/utils/fetch';
+import { OpenApiSource } from './type';
 
 /**
  * Write a patch file for a given OpenAPI spec content.
@@ -19,8 +19,8 @@ export function createPatch(source: OpenApiSource) {
   const { pathname, extension } = source;
   const spec = parseOpenApiSpec(source);
   const apiVersion = spec.info?.version;
-  if (typeof apiVersion !== "string") {
-    throw new Error("Cannot write patch: spec.info.version is not a string");
+  if (typeof apiVersion !== 'string') {
+    throw new Error('Cannot write patch: spec.info.version is not a string');
   }
 
   // # Write
@@ -32,13 +32,10 @@ export function createPatch(source: OpenApiSource) {
   const outPath = path.join(PATCHES_DIR, outFilename);
 
   //- Stringify
-  const outText =
-    extension === ".json"
-      ? JSON.stringify(spec, null, 2)
-      : YAML.stringify(spec);
+  const outText = extension === '.json' ? JSON.stringify(spec, null, 2) : YAML.stringify(spec);
 
   // # Write
-  fs.writeFileSync(outPath, outText, "utf-8");
+  fs.writeFileSync(outPath, outText, 'utf-8');
 
   console.log(`✅ Wrote ${outPath}`);
 
@@ -50,19 +47,16 @@ export function createPatch(source: OpenApiSource) {
  * @param {string} [version] - The API version.
  */
 export async function getPatchPath(version = null) {
-  const { version: pkgOpenApiVersion, source: pkgOpenApiSource } =
-    await getPackageOpenApi();
+  const { version: pkgOpenApiVersion, source: pkgOpenApiSource } = await getPackageOpenApi();
 
-  if (typeof pkgOpenApiSource !== "string") {
-    console.error(
-      "❌ package.json `input` field must be a string (URL or local path)"
-    );
+  if (typeof pkgOpenApiSource !== 'string') {
+    console.error('❌ package.json `input` field must be a string (URL or local path)');
     process.exit(1);
   }
 
   const apiVersion = version || pkgOpenApiVersion;
   if (!apiVersion) {
-    throw new Error("❌ Cannot get patch file path: no API version found");
+    throw new Error('❌ Cannot get patch file path: no API version found');
   }
 
   const { pathname, extension } = await fetchOpenApiSource(pkgOpenApiSource);

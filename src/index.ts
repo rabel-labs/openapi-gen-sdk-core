@@ -1,2 +1,2 @@
-export * from "@/utils/index";
-export * from "@/scripts/index";
+export * from '@/utils/index';
+export * from '@/scripts/index';

@@ -1,19 +1,16 @@
 #!/usr/bin/env node
-import { Command } from "commander";
-import { ciCheck, ciGenerate, ciUpdate, syncPatch, syncVersion } from "@/index";
+import { Command } from 'commander';
+import { ciCheck, ciGenerate, ciUpdate, syncPatch, syncVersion } from '@/index';
 
 const program = new Command();
 
-program
-  .name("openapi-gen")
-  .description("OpenAPI SDK generator CLI")
-  .version("1.0.0");
+program.name('openapi-gen').description('OpenAPI SDK generator CLI').version('1.0.0');
 
 // --- Sync Commands ---
 
 program
-  .command("sync-patch")
-  .description("Sync patch file from OpenAPI spec")
+  .command('sync-patch')
+  .description('Sync patch file from OpenAPI spec')
   .action(async () => {
     try {
       await syncPatch();
@@ -24,8 +21,8 @@ program
   });
 
 program
-  .command("sync-version")
-  .description("Sync package.json version from OpenAPI spec")
+  .command('sync-version')
+  .description('Sync package.json version from OpenAPI spec')
   .action(async () => {
     try {
       await syncVersion();
@@ -38,15 +35,15 @@ program
 // --- CI Commands ---
 
 program
-  .command("ci-check")
-  .description("Check if the OpenAPI spec has changed")
+  .command('ci-check')
+  .description('Check if the OpenAPI spec has changed')
   .action(async () => {
     try {
       const changed = await ciCheck();
 
       // Modern GitHub Actions output
       if (process.env.GITHUB_OUTPUT) {
-        const fs = await import("fs");
+        const fs = await import('fs');
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
       }
     } catch (err) {
@@ -56,19 +53,16 @@ program
   });
 
 program
-  .command("ci-update")
-  .description("Update OpenAPI patch and version")
+  .command('ci-update')
+  .description('Update OpenAPI patch and version')
   .action(async () => {
     try {
       const version = await ciUpdate();
 
       // Modern GitHub Actions output
       if (process.env.GITHUB_OUTPUT) {
-        const fs = await import("fs");
-        fs.appendFileSync(
-          process.env.GITHUB_OUTPUT,
-          `openapi_version=${version}\n`
-        );
+        const fs = await import('fs');
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `openapi_version=${version}\n`);
       }
     } catch (err) {
       console.error(err);
@@ -77,8 +71,8 @@ program
   });
 
 program
-  .command("ci-generate")
-  .description("Generate SDK from OpenAPI spec")
+  .command('ci-generate')
+  .description('Generate SDK from OpenAPI spec')
   .action(async () => {
     try {
       await ciGenerate();
