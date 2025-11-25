@@ -45,3 +45,25 @@ This separation keeps the engine simple while giving us complete freedom around 
 ### Docs
 
 [(url_)]
+
+### Event function execution order
+
+Load any OpenAPI → APIDOM parser
+
+Normalize → OAS3.1 DOM
+
+Apply deterministic operationId rules
+
+Optionally split operations → per-file snapshots
+
+Lock the spec / snapshot
+
+Optional changelog generation via oasdiff
+
+Feed into @hey-api generator
+
+Post-processing / validation / governance checks
+
+Minimal dependencies: APIDOM + parser adapters + oasdiff
+
+Everything else is orchestration (Node scripts, folder structure, GitHub Actions)
