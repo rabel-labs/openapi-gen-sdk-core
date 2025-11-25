@@ -1,10 +1,5 @@
 # Openapi-gen-sdk-core
 
-Creator: Pierre-wesner Rabel
-Date: November 25, 2025 1:11 PM
-
-## **Openapi-gen-sdk-core**
-
 `openapi-gen-sdk-core` wants to be a lightweight toolkit designed to generate, update, and maintain internal SDKs from external OpenAPI sources;
 
 The package provides a standardized workflow to fetch, track, patch, and regenerate SDKs. With tooling to use directly from GitHub, giving teams full control over versioning and automation without the overhead of large proprietary systems.
