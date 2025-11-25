@@ -1,7 +1,7 @@
 import { fetchOpenApiSource } from '@/utils/fetch';
 import { editPackage, getPackageOpenApi } from '@/utils/package';
 import { parseOpenApiSpec } from '@/utils/parse';
-import { createPatch } from '@/utils/patch';
+import { createSnapshot } from '@/utils/snapshot';
 
 async function extractAndParse(openApiSource: string) {
   const source = await fetchOpenApiSource(openApiSource);
@@ -17,7 +17,7 @@ export async function syncPatch() {
   const { source: pkgOpenApiSource } = await getPackageOpenApi();
   const { source, apiVersion } = await extractAndParse(pkgOpenApiSource);
   console.log(`🔀 Syncing patch for ${apiVersion}`);
-  createPatch(source);
+  createSnapshot(source);
   console.log(`🔧 Synced patch to ${apiVersion}`);
 }
 

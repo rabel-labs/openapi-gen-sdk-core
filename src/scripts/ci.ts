@@ -1,7 +1,7 @@
 import { fetchOpenApiSource } from '@/utils/fetch';
 import { editPackage, getPackageOpenApi } from '@/utils/package';
 import { getOpenApiVersion } from '@/utils/parse';
-import { createPatch } from '@/utils/patch';
+import { createSnapshot } from '@/utils/snapshot';
 import { execSync } from 'child_process';
 
 export async function ciCheck() {
@@ -27,7 +27,7 @@ export async function ciUpdate() {
   const version = getOpenApiVersion(source);
 
   editPackage({ version });
-  createPatch(source);
+  createSnapshot(source);
 
   return version;
 }

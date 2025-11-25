@@ -2,34 +2,34 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import { parseOpenApiSpec } from '@/utils/parse';
-import { PATCHES_DIR } from '@/utils/const';
+import { SNAPSHOTS_DIR } from '@/utils/const';
 import { getPackageOpenApi } from '@/utils/package';
 import { fetchOpenApiSource } from '@/utils/fetch';
 import { OpenApiSource } from '../type';
 
 /**
- * Write a patch file for a given OpenAPI spec content.
+ * Write a snapshot file for a given OpenAPI spec content.
  * @param {object} params
  * @param {string} params.text - JSON or YAML
  * @param {string} params.pathname - The base path or file name
  * @param {string} params.extension - File extension, ".json" or ".yaml".
  */
-export function createPatch(source: OpenApiSource) {
+export function createSnapshot(source: OpenApiSource) {
   //# Parse
   const { pathname, extension } = source;
   const spec = parseOpenApiSpec(source);
   const apiVersion = spec.info?.version;
   if (typeof apiVersion !== 'string') {
-    throw new Error('Cannot write patch: spec.info.version is not a string');
+    throw new Error('Cannot write snapshot: spec.info.version is not a string');
   }
 
   // # Write
   //- Determine base filename
   const baseName = path.basename(pathname, extension);
-  fs.mkdirSync(PATCHES_DIR, { recursive: true });
+  fs.mkdirSync(SNAPSHOTS_DIR, { recursive: true });
 
   const outFilename = `${baseName}.${apiVersion}${extension}`;
-  const outPath = path.join(PATCHES_DIR, outFilename);
+  const outPath = path.join(SNAPSHOTS_DIR, outFilename);
 
   //- Stringify
   const outText = extension === '.json' ? JSON.stringify(spec, null, 2) : YAML.stringify(spec);
@@ -43,10 +43,10 @@ export function createPatch(source: OpenApiSource) {
 }
 
 /**
- * Get pathname to patch file.
+ * Get pathname to snapshot file.
  * @param {string} [version] - The API version.
  */
-export async function getPatchPath(version = null) {
+export async function getSnapshotPath(version = null) {
   const { version: pkgOpenApiVersion, source: pkgOpenApiSource } = await getPackageOpenApi();
 
   if (typeof pkgOpenApiSource !== 'string') {
@@ -63,5 +63,5 @@ export async function getPatchPath(version = null) {
   const baseName = path.basename(pathname, extension);
 
   const outFilename = `${baseName}.${apiVersion}${extension}`;
-  return path.join(PATCHES_DIR, outFilename);
+  return path.join(SNAPSHOTS_DIR, outFilename);
 }
