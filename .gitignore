@@ -4,4 +4,4 @@
 # Ignore Snapshots generations In this project
 /snapshots
 
-*.dev.ts
+src/*.dev.ts
