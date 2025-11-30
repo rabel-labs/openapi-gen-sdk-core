@@ -1,10 +1,10 @@
-import { handler } from '@/plugin/plugin';
-import { OpenapiGenPlugin } from '@/plugin/types';
 import { definePluginConfig } from '@hey-api/openapi-ts';
+import { OpenapiGenPlugin } from './types';
+import { handler } from './plugin';
 
+export const openapiGenConfigName: OpenapiGenPlugin['Config']['name'] = '@openapiGen/core';
 export const defaultOpenapiGenConfig: OpenapiGenPlugin['Config'] = {
-  name: '@openapiGen/core',
-  dependencies: ['@hey-api/typescript'],
+  name: openapiGenConfigName,
   config: {
     syncVersion: false,
     mergeInputs: false,
@@ -15,7 +15,7 @@ export const defaultOpenapiGenConfig: OpenapiGenPlugin['Config'] = {
       reject: undefined,
     },
   },
-  handler,
+  handler: handler,
 };
 
 export const defineOpenapiGenConfig = definePluginConfig(defaultOpenapiGenConfig);
