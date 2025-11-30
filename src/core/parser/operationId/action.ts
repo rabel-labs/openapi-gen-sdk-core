@@ -1,10 +1,3 @@
-import { toValue } from '@swagger-api/apidom-core';
-import {
-  refractorPluginNormalizeOperationIds,
-  OpenApi3_1Element,
-} from '@swagger-api/apidom-ns-openapi-3-1';
-import { parseSource } from '@/core/reference';
-
 type NormalizeFunc = (operationId: string, path: string, method: string) => string;
 type SkipNormalizeFunc = (path: string, method: string) => boolean;
 
