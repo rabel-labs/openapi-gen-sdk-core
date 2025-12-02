@@ -11,12 +11,12 @@ import { ResolvedConfig } from '@/core/parser/operationId/action';
  */
 export function createParserHandler<E extends Element>(
   predicate: PredicateFunc<E>,
-  handler: (element: E, options?: ResolvedConfig) => E,
+  handler: (element: E, options?: Partial<ResolvedConfig>) => E,
 ): CommandParserHandler<E> {
   return {
     name: 'operationId',
     predicate,
-    handler: (element: E, options?: ResolvedConfig) => {
+    handler: (element: E, options?: Partial<ResolvedConfig>) => {
       // element is Element, but predicate ensures it's E
       return handler(element as E, options);
     },
