@@ -6,7 +6,7 @@ import { loadConfig } from 'c12';
 import type { UserConfig } from '@hey-api/openapi-ts';
 
 type ResolvedOpenapiGenConfig = Omit<UserConfig, 'plugins'> & {
-  openapiGenConfig: typeof defaultOpenapiGenConfig.config
+  openapiGenConfig: typeof defaultOpenapiGenConfig.config;
 };
 
 function isOpenApiGenPlugin(plugin: any): plugin is OpenapiGenPlugin['Config'] {
@@ -15,18 +15,18 @@ function isOpenApiGenPlugin(plugin: any): plugin is OpenapiGenPlugin['Config'] {
 
 const getConfig = (config: UserConfig) => {
   const { plugins, ...rest } = config;
-  let openapiGenConfig: ResolvedOpenapiGenConfig['openapiGenConfig'] = defaultOpenapiGenConfig.config
+  let openapiGenConfig: ResolvedOpenapiGenConfig['openapiGenConfig'] =
+    defaultOpenapiGenConfig.config;
   plugins?.find((plugin) => {
     if (isOpenApiGenPlugin(plugin)) {
-      openapiGenConfig = plugin.config
+      openapiGenConfig = plugin.config;
     }
   });
   return {
     ...rest,
-    openapiGenConfig
+    openapiGenConfig,
   };
 };
-
 
 const resolvedConfig = await loadConfig<UserConfig>({
   configFile: './openapi-ts.config',
