@@ -11,7 +11,8 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist/lib",
+    "dist/bin"
   ],
   "bin": {
     "openapi-gen": "dist/cli.js"
@@ -19,15 +20,15 @@
   "scripts": {
     "ci:ck": "openapi-gen ci-check",
     "ci:up": "openapi-gen ci-update",
-    "clean": "rm -rf dist",
     "build": "tsup",
     "prepare": "pnpm build",
     "format": "prettier --write 'src/**/*.ts'",
-    "play": "tsx src/playground.dev.ts"
+    "play": "node dist/dev/playground.dev.js"
   },
   "devDependencies": {
     "@types/node": "^20.19.25",
-    "commander": "^11.1.0",
+    "@typescript-eslint/parser": "^8.48.1",
+    "eslint": "^9.39.1",
     "prettier": "^3.7.3",
     "tsup": "^8.5.1",
     "tsx": "^4.20.6",
@@ -38,6 +39,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "commander": "^11.1.0",
     "@hey-api/openapi-ts": "^0.88.0",
     "@swagger-api/apidom-ast": "1.0.0-rc.4",
     "@swagger-api/apidom-core": "1.0.0-rc.4",

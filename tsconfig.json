@@ -9,8 +9,8 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "declaration": true,
-    "baseUrl": "./src",
     "skipLibCheck": true,
+    "baseUrl": "src",
     "paths": {
       "@/*": ["*"]
     }
