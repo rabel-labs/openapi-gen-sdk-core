@@ -29,7 +29,7 @@ export type OpenapiGenPluginConfig = {
      * Parse OperationId.
      * @default undefined
      */
-    operationId?: ParserOperationIdConfig;
+    operationId?: Partial<ParserOperationIdConfig>;
     /**
      * Sort paths.
      * @default undefined

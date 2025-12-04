@@ -1,5 +1,5 @@
 import { parseSource } from '@/core';
-import { infoVisitor } from '@/core/visitors';
+import { infoExtracter } from '@/core/extracter';
 import { OpenApiSource } from '@/types/type';
 import { SNAPSHOTS_DIR } from '@/utils/const';
 import { getPackageOpenApi } from '@/utils/package';
@@ -18,7 +18,7 @@ import { toJSON, toYAML } from '@swagger-api/apidom-core';
  */
 export function createSnapshot(openApiSource: OpenApiSource) {
   const { parseResult, source, extension } = openApiSource;
-  const info = infoVisitor.visit(parseResult);
+  const info = infoExtracter.extract(parseResult);
   const apiVersion = info.version;
   if (typeof apiVersion !== 'string') {
     throw new Error('Cannot write snapshot: spec.info.version is not a string');

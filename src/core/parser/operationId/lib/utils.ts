@@ -59,6 +59,11 @@ const toCase = (caseStyle: ParserOperationIdConfig['caseStyle'], tokens: string[
  */
 const isPathParam = (segment: string) => /^\{.*\}$/.test(segment);
 
+/**
+ * Create a normalizer function.
+ * @param options - OperationIdParserConfig
+ * @returns - NormalizeFunc
+ */
 export function operationIdNormalizer(options?: Partial<ParserOperationIdConfig>): NormalizeFunc {
   const config: ParserOperationIdConfig = {
     ...defaultParserOperationIdConfig,

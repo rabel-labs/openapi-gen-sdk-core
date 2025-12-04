@@ -5,13 +5,13 @@ import { Element } from '@swagger-api/apidom-core';
 
 export type ParserCommandName = 'operationId' | 'sort';
 
-export type ParserCommandOptions = Partial<ResolvedOpenapiGenConfig>;
+export type ParserCommandOptions = Partial<ResolvedOpenapiGenConfig['openapiGenConfig']['parser']>;
 type ParserCommandHandlerFunc<E extends Element, O = any> = (element: E, options?: O) => E;
 
-export interface ParserCommandHandler<PE extends Element = any, O = any> {
+export interface ParserCommandHandler<PE extends Element = any> {
   name: ParserCommandName;
   predicate: PredicateFunc<PE>;
-  handler: ParserCommandHandlerFunc<PE, O>;
+  handler: ParserCommandHandlerFunc<PE, ParserCommandOptions>;
 }
 
 interface ParserCommandHandlers {

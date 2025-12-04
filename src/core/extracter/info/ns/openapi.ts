@@ -1,25 +1,15 @@
-import { createVisitorHandler, VisitHandler, Visitor } from '@/core/extracter/visitor';
+import { infoExtracter } from '@/core/extracter';
+import InfoExtracter from '@/core/extracter/info/extracter';
 import { isOpenApi2, isOpenApi3x } from '@/core/predicate';
 
 import { toValue } from '@swagger-api/apidom-core';
 
-export type Info = {
-  title: string;
-  version: string;
-  license?: {
-    name: string;
-    url: string;
-  };
-};
-
-type VisitorHandlers = VisitHandler<any, Info>[];
-
-const infoHandlers: VisitorHandlers = [
-  createVisitorHandler(isOpenApi2, (el) => {
+const openapiInfoHandlers = [
+  InfoExtracter.createHandler(isOpenApi2, (el) => {
     const openapiElement = el.get('swagger');
-    const InfoElement = el.get('info');
+    const infoElement = el.get('info');
     const openapiValue = toValue(openapiElement);
-    const infoValue = toValue(InfoElement);
+    const infoValue = toValue(infoElement);
     return {
       openapi: openapiValue,
       title: infoValue.title,
@@ -27,7 +17,7 @@ const infoHandlers: VisitorHandlers = [
       license: infoValue.license,
     };
   }),
-  createVisitorHandler(isOpenApi3x, (el) => {
+  InfoExtracter.createHandler(isOpenApi3x, (el) => {
     const openapiElement = el.get('openapi');
     const InfoElement = el.get('info');
     const openapiValue = toValue(openapiElement);
@@ -41,8 +31,4 @@ const infoHandlers: VisitorHandlers = [
   }),
 ];
 
-export default class InfoVisitor extends Visitor<Info> {
-  constructor() {
-    super(infoHandlers);
-  }
-}
+export default openapiInfoHandlers;

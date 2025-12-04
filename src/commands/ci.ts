@@ -1,5 +1,5 @@
 import { parseSource } from '@/core';
-import { infoVisitor } from '@/core/visitors';
+import { infoExtracter } from '@/core/extracter';
 import { editPackage, getPackageOpenApi } from '@/utils/package';
 import { createSnapshot } from '@/utils/snapshot';
 
@@ -8,7 +8,7 @@ import { execSync } from 'child_process';
 export async function ciCheck() {
   const { version: pkgOpenApiVersion, source: pkgOpenApiSource } = await getPackageOpenApi();
   const { parseResult } = await parseSource(pkgOpenApiSource);
-  const externalVersion = infoVisitor.visit(parseResult).version;
+  const externalVersion = infoExtracter.extract(parseResult).version;
   if (pkgOpenApiVersion === externalVersion) {
     console.log('✅ Local patch is up to date.');
     return false;
@@ -20,7 +20,7 @@ export async function ciCheck() {
 export async function ciUpdate() {
   const { source: pkgOpenApiSource } = await getPackageOpenApi();
   const openApiSource = await parseSource(pkgOpenApiSource);
-  const version = infoVisitor.visit(openApiSource.parseResult).version;
+  const version = infoExtracter.extract(openApiSource.parseResult).version;
   editPackage({ version });
   createSnapshot(openApiSource);
   return version;

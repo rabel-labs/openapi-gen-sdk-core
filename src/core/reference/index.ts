@@ -113,6 +113,12 @@ export async function parseSource(source: string): Promise<OpenApiSource> {
 
   const extension = pathExtname(pathname).toLowerCase();
 
+  if (!parsed.result) {
+    throw new Error('❌ Failed to parse spec');
+  } else {
+    console.log('✅ Parsed spec');
+  }
+
   return {
     parseResult: parsed.result,
     source,
