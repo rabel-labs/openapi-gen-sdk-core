@@ -33,7 +33,7 @@ type RefractablePlugin = (toolbox?: any) => {
  * @param refractor - Refractable - default Element
  * @returns - VisitorHandler<E, T>
  */
-export function createParserHandler<E extends Element>(
+export function refractParseHandler<E extends Element>(
   name: ParserCommandName,
   predicate: PredicateFunc<E>,
   plugins: (options?: Partial<ResolvedConfig>) => RefractablePlugin[],
@@ -45,7 +45,7 @@ export function createParserHandler<E extends Element>(
     handler: (element: E, options?: Partial<ResolvedConfig>) => {
       const refractorTarget = refractor ?? element.constructor;
       if (!isRefractable(refractorTarget)) throw new Error('ParserCommander: no refractor found');
-      const h = OpenApi3_1Element.refract(element, {
+      const h = refractorTarget.refract(element, {
         plugins: plugins(options) ?? [],
       }) as E;
       return h;
