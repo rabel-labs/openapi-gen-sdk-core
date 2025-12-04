@@ -1,11 +1,13 @@
-import { ResolvedConfig } from '@/core/parser/operationId/action';
+import { ResolvedOpenapiGenConfig } from '@/commands/config';
 import { PredicateFunc } from '@/core/predicate';
 
 import { Element } from '@swagger-api/apidom-core';
 
 export type ParserCommandName = 'operationId' | 'sort';
 
-export type ParserCommand<E extends Element> = (element: E, options?: Partial<ResolvedConfig>) => E;
+export type ParserOptions = Partial<ResolvedOpenapiGenConfig>;
+
+export type ParserCommand<E extends Element> = (element: E, options?: ParserOptions) => E;
 
 export interface CommandParserHandler<PE extends Element = any> {
   name: ParserCommandName;

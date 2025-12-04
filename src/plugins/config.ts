@@ -1,3 +1,4 @@
+import { defaultParserOperationIdConfig } from '@/core/parser/operationId/config';
 import { handler } from '@/plugins/plugin';
 import { OpenapiGenPlugin } from '@/plugins/types';
 
@@ -10,7 +11,7 @@ export const defaultOpenapiGenConfig: OpenapiGenPlugin['Config'] = {
     syncVersion: false,
     mergeInputs: false,
     parser: {
-      operationId: undefined,
+      operationId: defaultParserOperationIdConfig,
       sort: undefined,
       filter: undefined,
       reject: undefined,
@@ -18,7 +19,7 @@ export const defaultOpenapiGenConfig: OpenapiGenPlugin['Config'] = {
     snapshot: {
       enabled: true,
       folder: './snapshots',
-      versionStrategy: 'infer-semver', // or "manual"
+      versionStrategy: 'infer', // or "manual"
     },
   },
   handler: handler,

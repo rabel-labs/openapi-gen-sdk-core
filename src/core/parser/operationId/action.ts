@@ -1,45 +1,9 @@
+import {
+  defaultParserOperationIdConfig,
+  ParserOperationIdConfig,
+} from '@/core/parser/operationId/config';
+
 type NormalizeFunc = (operationId: string, path: string, method: string) => string;
-type SkipNormalizeFunc = (path: string, method: string) => boolean;
-
-export type ResolvedConfig = {
-  /**
-   * Word to use as root path ( '/'  => 'root' )
-   * @default 'root'
-   */
-  rootWord: string;
-  /**
-   * 'prefix' => {method}{...}
-   * 'suffix' => {...}{method}
-   * @default 'prefix'
-   */
-  methodPosition: 'prefix' | 'suffix';
-  /**
-   * 'snake' | 'camel' | 'pascal' | 'kebab'
-   * @default 'camel'
-   */
-  caseStyle: 'snake' | 'camel' | 'pascal' | 'kebab';
-  /**
-   * 'by' => by{paramName}
-   * 'inline' => {paramName}
-   * @default 'by'
-   */
-  paramStyle: 'by' | 'inline';
-  /**
-   * Skip refactoring if function returns true
-   * @default undefined
-   */
-  skipRefactoring?: boolean | SkipNormalizeFunc;
-  //! TODO:
-  //pluralize?: boolean // product/{id} → products/{id}
-};
-
-const defaultConfig: ResolvedConfig = {
-  rootWord: 'root',
-  methodPosition: 'prefix',
-  caseStyle: 'camel',
-  paramStyle: 'by',
-  skipRefactoring: false,
-};
 
 /**
  * Sanitize path
@@ -70,7 +34,7 @@ const toTokens = (str: string): string[] => {
  * @param tokens - eg. ['a', 'b', 'c']
  * @returns - eg. 'aBC'
  */
-const toCase = (caseStyle: ResolvedConfig['caseStyle'], tokens: string[]): string => {
+const toCase = (caseStyle: ParserOperationIdConfig['caseStyle'], tokens: string[]): string => {
   if (!tokens.length) return '';
   switch (caseStyle) {
     case 'snake':
@@ -95,21 +59,19 @@ const toCase = (caseStyle: ResolvedConfig['caseStyle'], tokens: string[]): strin
  */
 const isPathParam = (segment: string) => /^\{.*\}$/.test(segment);
 
-export function createOperationIdParser(options?: Partial<ResolvedConfig>): NormalizeFunc {
-  const config: ResolvedConfig = {
-    ...defaultConfig,
+export function createOperationIdParser(options?: Partial<ParserOperationIdConfig>): NormalizeFunc {
+  const config: ParserOperationIdConfig = {
+    ...defaultParserOperationIdConfig,
     ...options,
   };
 
   return (operationId: string, path: string, method: string): string => {
     //-> skip refactoring if configured...
     switch (true) {
-      case typeof config.skipRefactoring === 'function':
-        if (config.skipRefactoring(path, method)) return operationId;
-        break;
-      case config.skipRefactoring === true:
+      case typeof config.ignore === 'function':
+        if (config.ignore(path, method)) return operationId;
+      case config.ignore === true:
         return operationId;
-      case config.skipRefactoring === false:
       default:
         break;
     }

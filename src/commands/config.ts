@@ -5,8 +5,9 @@ import { loadConfig } from 'c12';
 
 import type { UserConfig } from '@hey-api/openapi-ts';
 
-type ResolvedOpenapiGenConfig = Omit<UserConfig, 'plugins'> & {
-  openapiGenConfig: typeof defaultOpenapiGenConfig.config;
+export type OpenApiGenConfig = typeof defaultOpenapiGenConfig.config;
+export type ResolvedOpenapiGenConfig = Omit<UserConfig, 'plugins'> & {
+  openapiGenConfig: OpenApiGenConfig;
 };
 
 function isOpenApiGenPlugin(plugin: any): plugin is OpenapiGenPlugin['Config'] {

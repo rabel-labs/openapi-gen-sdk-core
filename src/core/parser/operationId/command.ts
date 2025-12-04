@@ -14,7 +14,9 @@ const operationIdParsers: CommandParserHandler[] = [
     isOpenApi2,
     (options) => [
       refractorPluginNormalizeOperationIds({
-        operationIdNormalizer: createOperationIdParser(options),
+        operationIdNormalizer: createOperationIdParser(
+          options?.openapiGenConfig?.parser?.operationId,
+        ),
       }),
     ],
     OpenApi3_1Element,
@@ -24,7 +26,9 @@ const operationIdParsers: CommandParserHandler[] = [
     isOpenApi3x,
     (options) => [
       refractorPluginNormalizeOperationIds({
-        operationIdNormalizer: createOperationIdParser(options),
+        operationIdNormalizer: createOperationIdParser(
+          options?.openapiGenConfig?.parser?.operationId,
+        ),
       }),
     ],
     OpenApi3_1Element,

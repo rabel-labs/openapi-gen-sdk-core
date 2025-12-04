@@ -1,4 +1,9 @@
+import { ParserOperationIdConfig } from '@/core/parser/operationId/config';
+
 import type { DefinePlugin } from '@hey-api/openapi-ts';
+
+type NormalizeFunc = (operationId: string, path: string, method: string) => string;
+type SkipNormalizeFunc = (path: string, method: string) => boolean;
 
 export type OpenapiGenPluginConfig = {
   /**
@@ -24,7 +29,7 @@ export type OpenapiGenPluginConfig = {
      * Parse OperationId.
      * @default undefined
      */
-    operationId?: 'paths' | 'methods' | (() => string);
+    operationId?: ParserOperationIdConfig;
     /**
      * Sort paths.
      * @default undefined
@@ -60,7 +65,7 @@ export type OpenapiGenPluginConfig = {
      * The snapshot version strategy.
      * @default 'infer-semver'
      */
-    versionStrategy?: 'infer-semver' | 'manual';
+    versionStrategy?: 'infer' | 'manual';
   };
 };
 
