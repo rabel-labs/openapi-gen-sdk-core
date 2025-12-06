@@ -1,16 +1,14 @@
 import { defaultOpenapiGenConfig } from '@/config/default';
-import { ResolvedOpenapiGenConfig } from '@/config/resolved';
 import { OpenapiGenConfig } from '@/config/type';
 import { hasNormalize, mergeWithDefaults } from '@/config/utils';
+import { ParserConfig } from '@/core/parser/config';
 import { PredicateFunc } from '@/core/predicate';
 
 import { Element } from '@swagger-api/apidom-core';
 
-export type ParserCommandName = 'operationId' | 'sort';
+export type ParserCommandName = keyof ParserConfig;
+export type ParserCommandOptions = Partial<ParserConfig>;
 
-export type ParserCommandOptions = Partial<
-  ResolvedOpenapiGenConfig['openapiGenConfig']['normalized']
->;
 type ParserCommandHandlerFunc<E extends Element, O = any> = (element: E, options?: O) => E;
 
 export interface ParserCommandHandler<PE extends Element = any> {
@@ -73,12 +71,9 @@ export class ParserCommander implements ParserCommanderImpl {
       let normalizedElement = element;
       for (const cn of key as ParserCommandName[]) {
         try {
-          const command = this[cn];
-          if (command) {
-            normalizedElement = command(normalizedElement, mergedConfig.normalized);
-          }
+          normalizedElement = this[cn](normalizedElement, mergedConfig.normalized);
         } catch (e) {
-          console.error(`ParserCommander: failed to execute ${cn} command`, e);
+          console.error(`ParserCommander: failed to execute ${cn} command\n`, e);
         }
       }
       return normalizedElement;

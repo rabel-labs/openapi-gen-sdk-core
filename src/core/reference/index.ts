@@ -109,7 +109,7 @@ export async function parseSource(source: string): Promise<OpenApiSource> {
   //# Compute
   const isExternal = source.startsWith('http://') || source.startsWith('https://');
   const pathname = isExternal ? new URL(source).pathname : source;
-  const extension = pathExtname(pathname).toLowerCase();
+  const extension = pathExtname(pathname).toLowerCase().replace('.', '');
   //# Validate
   if (!isSnapshotFileExtensionName(extension)) {
     throw new Error(`❌ Snapshot: invalid file extension, ${extension}`);

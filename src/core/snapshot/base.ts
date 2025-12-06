@@ -143,7 +143,7 @@ export class Snapshot {
    * @returns - this
    */
   async load(): Promise<this> {
-    this.ensureOpenApiSource();
+    await this.ensureOpenApiSource();
     this.ensureComputed();
     return this;
   }
@@ -161,8 +161,8 @@ export class Snapshot {
     //# Write source
     const sourceOutText = converter.fromApiDom(openapiSource.parseResult, fileExtensions.source);
     try {
-      mkdir(path, { recursive: true });
-      writeFile(fullSourcePath, sourceOutText, 'utf-8');
+      await mkdir(path, { recursive: true }); // Create directory
+      writeFile(fullSourcePath, sourceOutText, 'utf-8'); // Write source
       console.log(`✅ Saved source to ${fullSourcePath}`);
       return true;
     } catch (e) {
@@ -190,7 +190,7 @@ export class Snapshot {
     //# Write normalized
     const normalizedOutText = converter.fromApiDom(normalizedElement, fileExtensions.normalized);
     try {
-      mkdir(path, { recursive: true });
+      await mkdir(path, { recursive: true }); // Create directory
       writeFile(fullNormalizedPath, normalizedOutText, 'utf-8');
       console.log(`✅ Saved normalized to ${fullNormalizedPath}`);
       return true;

@@ -1,15 +1,10 @@
 import { OpenapiGenConfig } from '@/config/type';
-import { defaultParserOperationIdConfig } from '@/core/parser/operationId/config';
+import { defaultParserConfig } from '@/core/parser/config';
 import { defaultSnapshotConfig } from '@/core/snapshot/config';
 
 export const defaultOpenapiGenConfig = {
   syncVersion: false,
   mergeInputs: false,
-  normalized: {
-    operationId: defaultParserOperationIdConfig,
-    sort: null,
-    filter: null,
-    reject: null,
-  },
+  normalized: defaultParserConfig,
   snapshot: defaultSnapshotConfig,
 } satisfies Required<OpenapiGenConfig>;

@@ -58,7 +58,6 @@ export class RefractablePlugin {
       predicate,
       handler: (element: E, options?: ParserCommandOptions) => {
         const refractorTarget = refractable.Element;
-        console.log(refractorTarget);
         if (!isRefractable(refractorTarget)) throw new Error('ParserCommander: no refractor found');
         const h = refractorTarget.refract(element, {
           plugins: [refractable.plugin(options)],
