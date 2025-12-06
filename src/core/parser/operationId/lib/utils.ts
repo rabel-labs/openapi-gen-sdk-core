@@ -1,4 +1,4 @@
-import { mergeWithDefaults } from '@/config/resolved';
+import { mergeWithDefaults } from '@/config/utils';
 import {
   defaultParserOperationIdConfig,
   ParserOperationIdConfig,

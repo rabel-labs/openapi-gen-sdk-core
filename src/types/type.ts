@@ -1,9 +1,12 @@
+import { SnapshotFileExtension } from '@/core/snapshot/config';
+
 import { Element } from '@swagger-api/apidom-core';
 
 export type OpenApiSource = {
   parseResult: Element;
   source: string;
-  extension: string;
+  extension: SnapshotFileExtension;
+  isExternal: boolean;
 };
 
 export type OpenApiPackageInfo = {

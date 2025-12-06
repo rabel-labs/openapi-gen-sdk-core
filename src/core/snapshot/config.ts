@@ -3,11 +3,13 @@ const SOURCE_FILENAME = 'source';
 const NORMALIZED_FILENAME = 'normalized';
 const META_FILENAME = 'meta';
 
+const InferKey = 'infer' as const;
+type InferKey = typeof InferKey;
 /**
  * Snapshot version strategy.
  */
 const VersionStrategyName = {
-  infer: 'infer',
+  infer: InferKey,
   manual: 'manual',
 } as const;
 type VersionStrategyName = keyof typeof VersionStrategyName;
@@ -28,21 +30,23 @@ type SnapshotFolderDetailed = {
 /**
  * Snapshot files
  **/
-type SnapshotFile = {
+type SnapshotFileNames = {
   source: string;
   normalized: string;
   meta: string;
 };
 
 const SnapshotFileExtensionName = {
-  infer: 'infer',
   json: 'json',
   yaml: 'yaml',
 } as const;
-type SnapshotFileExtension = keyof typeof SnapshotFileExtensionName;
+
+export type SnapshotFileExtension = keyof typeof SnapshotFileExtensionName;
+
 type SnapshotExtensions = {
-  source: SnapshotFileExtension;
-  normalized: SnapshotFileExtension;
+  source: SnapshotFileExtension | InferKey;
+  normalized: SnapshotFileExtension | InferKey;
+  meta: 'json';
 };
 
 type SnapshotFolder = SnapshotFolderRoot | SnapshotFolderDetailed;
@@ -61,7 +65,7 @@ export type SnapshotConfig = {
    * Snapshot files.
    * @default {...}
    */
-  files?: SnapshotFile;
+  files?: SnapshotFileNames;
   /**
    * Snapshot file extensions.
    * @default {...}
@@ -74,6 +78,17 @@ export type SnapshotConfig = {
   versionStrategy?: VersionStrategy;
 };
 
+/**
+ * Type guard for SnapshotFileExtensionName
+ * @param extension - SnapshotFileExtensionName
+ */
+export function isSnapshotFileExtensionName(extension: string): extension is SnapshotFileExtension {
+  return (
+    typeof extension === 'string' &&
+    (extension === SnapshotFileExtensionName.json || extension === SnapshotFileExtensionName.yaml)
+  );
+}
+
 export const defaultSnapshotConfig: Required<SnapshotConfig> = {
   enabled: true,
   folder: SNAPSHOTS_DIR,
@@ -83,8 +98,9 @@ export const defaultSnapshotConfig: Required<SnapshotConfig> = {
     meta: META_FILENAME,
   },
   extensions: {
-    source: SnapshotFileExtensionName.infer,
+    source: InferKey,
     normalized: SnapshotFileExtensionName.json,
+    meta: 'json',
   },
   versionStrategy: VersionStrategyName.infer,
-};
+} as const;

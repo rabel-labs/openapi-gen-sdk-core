@@ -1,3 +1,4 @@
+import { isSnapshotFileExtensionName } from '@/core/snapshot/config';
 import { OpenApiSource, SNAPSHOTS_DIR } from '@/utils';
 
 import { extname as pathExtname } from 'path';
@@ -96,32 +97,33 @@ const populatedParse = emptyParse;
 /**
  * Parse a given OpenAPI spec source (URL or local file path).
  * @param source - The OpenAPI spec source.
- * @returns - ApiDom ParseResultElement
+ * @returns - OpenApiSource
  */
 export async function parseSource(source: string): Promise<OpenApiSource> {
   console.log('🔨 Extracting OpenAPI spec from:', source);
+  //# Parse
   const parsed = await populatedParse(source);
-
   if (parsed.errors.length > 0 || !parsed.result) {
     throw new Error('❌ Failed to parse spec');
   }
-
-  const pathname =
-    source.startsWith('http://') || source.startsWith('https://')
-      ? new URL(source).pathname
-      : source;
-
+  //# Compute
+  const isExternal = source.startsWith('http://') || source.startsWith('https://');
+  const pathname = isExternal ? new URL(source).pathname : source;
   const extension = pathExtname(pathname).toLowerCase();
-
+  //# Validate
+  if (!isSnapshotFileExtensionName(extension)) {
+    throw new Error(`❌ Snapshot: invalid file extension, ${extension}`);
+  }
   if (!parsed.result) {
     throw new Error('❌ Failed to parse spec');
   } else {
     console.log('✅ Parsed spec');
   }
-
+  //-
   return {
     parseResult: parsed.result,
     source,
     extension,
+    isExternal,
   };
 }

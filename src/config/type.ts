@@ -16,7 +16,7 @@ export type OpenapiGenConfig = {
    * The parser configuration.
    * @default {...}
    */
-  parser?: {
+  normalized?: {
     /**
      * Parse OperationId.
      * @default null
@@ -37,7 +37,7 @@ export type OpenapiGenConfig = {
      * @default null
      */
     reject?: null;
-  };
+  } | null;
   /**
    * The snapshot configuration.
    * @default {...}

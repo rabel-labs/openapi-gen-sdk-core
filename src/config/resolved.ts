@@ -1,5 +1,6 @@
 import { defaultOpenapiGenConfig } from '@/config/default';
 import { OpenapiGenConfig } from '@/config/type';
+import { mergeWithDefaults } from '@/config/utils';
 import { openapiGenConfigName, OpenapiGenPlugin } from '@/plugins';
 
 import { loadConfig } from 'c12';
@@ -14,21 +15,6 @@ function isOpenApiGenPlugin(plugin: unknown): plugin is OpenapiGenPlugin['Config
   return (
     typeof plugin === 'object' && plugin !== null && (plugin as any).name === openapiGenConfigName
   );
-}
-
-/**
- * Generic "defaults + overrides" merger that removes all undefined values
- */
-export function mergeWithDefaults<T extends object>(
-  defaults: Required<T>,
-  overrides: Partial<T> | undefined,
-): Required<T> {
-  return Object.fromEntries(
-    Object.entries(defaults).map(([key, value]) => {
-      const override = overrides?.[key as keyof T];
-      return [key, override === undefined ? value : override];
-    }),
-  ) as Required<T>;
 }
 
 /**

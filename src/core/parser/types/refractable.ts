@@ -40,7 +40,7 @@ type RefractablePluginShape = (toolbox?: any) => {
 export class RefractablePlugin {
   public plugin: (option?: ParserCommandOptions) => RefractablePluginShape;
   public Element: Refractable;
-  private readonly defaultOption: ParserCommandOptions = defaultOpenapiGenConfig.parser;
+  private readonly defaultOption: ParserCommandOptions = defaultOpenapiGenConfig.normalized;
   constructor(
     plugin: (option?: ParserCommandOptions) => RefractablePluginShape,
     refractor?: Refractable,

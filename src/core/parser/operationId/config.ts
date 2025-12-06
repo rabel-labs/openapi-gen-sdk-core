@@ -38,4 +38,4 @@ export const defaultParserOperationIdConfig: Required<ParserOperationIdConfig> =
   caseStyle: 'camel',
   paramStyle: 'by',
   ignore: false,
-};
+} as const;
