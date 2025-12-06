@@ -1,3 +1,3 @@
-import { OpenapiGenPlugin } from '@/plugins/types';
+import { OpenapiGenPlugin } from '@/plugins/config';
 
 export const handler: OpenapiGenPlugin['Handler'] = () => {};

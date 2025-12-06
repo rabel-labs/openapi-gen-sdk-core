@@ -32,7 +32,7 @@ export type ParserOperationIdConfig = {
   //pluralize?: boolean // product/{id} → products/{id}
 };
 
-export const defaultParserOperationIdConfig: ParserOperationIdConfig = {
+export const defaultParserOperationIdConfig: Required<ParserOperationIdConfig> = {
   rootWord: 'root',
   methodPosition: 'prefix',
   caseStyle: 'camel',

@@ -1,3 +1,4 @@
+import { mergeWithDefaults } from '@/config/resolved';
 import {
   defaultParserOperationIdConfig,
   ParserOperationIdConfig,
@@ -65,10 +66,10 @@ const isPathParam = (segment: string) => /^\{.*\}$/.test(segment);
  * @returns - NormalizeFunc
  */
 export function operationIdNormalizer(options?: Partial<ParserOperationIdConfig>): NormalizeFunc {
-  const config: ParserOperationIdConfig = {
-    ...defaultParserOperationIdConfig,
-    ...options,
-  };
+  const config: ParserOperationIdConfig = mergeWithDefaults(
+    defaultParserOperationIdConfig,
+    options,
+  );
 
   return (operationId: string, path: string, method: string): string => {
     //-> skip refactoring if configured...

@@ -1,28 +1,15 @@
-import { defaultParserOperationIdConfig } from '@/core/parser/operationId/config';
+import { defaultOpenapiGenConfig } from '@/config/default';
+import { OpenapiGenConfig } from '@/config/type';
 import { handler } from '@/plugins/plugin';
-import { OpenapiGenPlugin } from '@/plugins/types';
 
-import { definePluginConfig } from '@hey-api/openapi-ts';
+import { DefinePlugin, definePluginConfig } from '@hey-api/openapi-ts';
+
+export type OpenapiGenPlugin = DefinePlugin<OpenapiGenConfig & { name: '@openapiGen/core' }>;
 
 export const openapiGenConfigName: OpenapiGenPlugin['Config']['name'] = '@openapiGen/core';
-export const defaultOpenapiGenConfig: OpenapiGenPlugin['Config'] = {
-  name: openapiGenConfigName,
-  config: {
-    syncVersion: false,
-    mergeInputs: false,
-    parser: {
-      operationId: defaultParserOperationIdConfig,
-      sort: undefined,
-      filter: undefined,
-      reject: undefined,
-    },
-    snapshot: {
-      enabled: true,
-      folder: './snapshots',
-      versionStrategy: 'infer', // or "manual"
-    },
-  },
-  handler: handler,
-};
 
-export const defineOpenapiGenConfig = definePluginConfig(defaultOpenapiGenConfig);
+export const defineOpenapiGenConfig = definePluginConfig({
+  name: openapiGenConfigName,
+  config: defaultOpenapiGenConfig,
+  handler: handler,
+} as OpenapiGenPlugin['Config']);

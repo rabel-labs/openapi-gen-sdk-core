@@ -1,6 +1,6 @@
+import { defaultOpenapiGenConfig } from '@/config/default';
 import { ParserCommandHandler, ParserCommandName, ParserCommandOptions } from '@/core/parser/base';
 import { PredicateFunc } from '@/core/predicate';
-import { defaultOpenapiGenConfig } from '@/plugins';
 
 import { Element } from '@swagger-api/apidom-core';
 
@@ -40,13 +40,12 @@ type RefractablePluginShape = (toolbox?: any) => {
 export class RefractablePlugin {
   public plugin: (option?: ParserCommandOptions) => RefractablePluginShape;
   public Element: Refractable;
-  private static defaultOption: ParserCommandOptions = defaultOpenapiGenConfig.config.parser;
+  private readonly defaultOption: ParserCommandOptions = defaultOpenapiGenConfig.parser;
   constructor(
     plugin: (option?: ParserCommandOptions) => RefractablePluginShape,
     refractor?: Refractable,
   ) {
-    this.plugin = (option?: ParserCommandOptions) =>
-      plugin(option ?? RefractablePlugin.defaultOption);
+    this.plugin = (option?: ParserCommandOptions) => plugin(option ?? this.defaultOption);
     this.Element = isRefractable(refractor) ? refractor : Element;
   }
   static createHandler<E extends Element>(
