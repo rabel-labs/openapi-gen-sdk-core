@@ -1,7 +1,6 @@
 import { parseSource } from '@/core';
 import { infoExtracter } from '@/core/extracter';
 import { editPackage, getPackageOpenApi } from '@/utils/package';
-import { createSnapshot } from '@/utils/snapshot';
 
 import { execSync } from 'child_process';
 
@@ -22,7 +21,6 @@ export async function ciUpdate() {
   const openApiSource = await parseSource(pkgOpenApiSource);
   const version = infoExtracter.extract(openApiSource.parseResult).version;
   editPackage({ version });
-  createSnapshot(openApiSource);
   return version;
 }
 
