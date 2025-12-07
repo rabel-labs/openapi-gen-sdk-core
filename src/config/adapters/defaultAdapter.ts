@@ -8,7 +8,7 @@ export const defaultAdapterName = 'default';
 
 type ConfigOptions = {
   adapter?: BaseAdapter;
-  config?: OpenapiGenConfig;
+  baseConfig?: OpenapiGenConfig;
 };
 
 export function defineConfig(ConfigOptions: ConfigOptions): ConfigOptions {
@@ -38,6 +38,6 @@ export class DefaultAdapter extends FileAdapter {
       modifiedExternalConfig = mergeWithDefaults(modifiedExternalConfig, adapterResult);
     }
     //-> apply default config
-    return mergeWithDefaults(modifiedExternalConfig, resolvedConfig.config.config ?? {});
+    return mergeWithDefaults(modifiedExternalConfig, resolvedConfig.config.baseConfig ?? {});
   }
 }

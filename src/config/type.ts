@@ -6,7 +6,7 @@ export type OpenapiGenConfig = {
    * The config file path.
    * @default 'specnova.config'
    */
-  configFile: 'specnova.config' | string;
+  configFile?: 'specnova.config' | string;
   /**
    * Syncronize the OpenAPI source version with the package.json version.
    * @default false
