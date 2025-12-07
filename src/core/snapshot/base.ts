@@ -1,3 +1,4 @@
+import resolvedConfig from '@/config';
 import { defaultOpenapiGenConfig } from '@/config/default';
 import { OpenapiGenConfig } from '@/config/type';
 import { hasNormalize, mergeWithDefaults } from '@/config/utils';
@@ -18,7 +19,7 @@ import { join as pathJoin } from 'path';
 
 export class Snapshot {
   //= initialize
-  private readonly config: Required<OpenapiGenConfig>;
+  private readonly config: Required<OpenapiGenConfig> = resolvedConfig;
   private readonly snapshotConfig: Required<SnapshotConfig>;
   private readonly sourceUrl: string;
 
@@ -35,7 +36,9 @@ export class Snapshot {
 
   //# Constructor
   constructor(source: string, config?: OpenapiGenConfig) {
-    this.config = mergeWithDefaults(defaultOpenapiGenConfig, config);
+    //-> Apply config to default config
+    this.config = mergeWithDefaults(defaultOpenapiGenConfig, config ?? this.config);
+    //-> Apply snapshot config to default snapshot config
     this.snapshotConfig = mergeWithDefaults(defaultSnapshotConfig, this.config.snapshot);
     this.sourceUrl = source;
   }

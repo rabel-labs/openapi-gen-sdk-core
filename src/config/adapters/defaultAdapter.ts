@@ -38,7 +38,6 @@ export class DefaultAdapter extends FileAdapter {
       modifiedExternalConfig = mergeWithDefaults(modifiedExternalConfig, adapterResult);
     }
     //-> apply default config
-    console.log('resolved', resolvedConfig);
     return mergeWithDefaults(modifiedExternalConfig, resolvedConfig.config.config ?? {});
   }
 }

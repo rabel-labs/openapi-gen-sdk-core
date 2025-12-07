@@ -24,7 +24,8 @@
     "prepare": "husky",
     "format": "prettier --write 'src/**/*.ts'",
     "eslint": "eslint --fix 'src/**/*.ts'",
-    "play": "pnpm build && node dist/dev/playground.dev.js"
+    "clean": "rm -rf dist",
+    "play": "pnpm build && node dist/dev/playground.config.js"
   },
   "devDependencies": {
     "@types/node": "^20.19.25",

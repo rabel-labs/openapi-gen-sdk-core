@@ -27,17 +27,14 @@ export class HeyApiAdapater extends FileAdapter {
         pluginConfig = p.config;
       }
     });
-    console.log('Hey API Config', pluginConfig);
     return pluginConfig;
   }
   async transform(externalConfig: ResolvedOpenapiGenConfig): Promise<ResolvedOpenapiGenConfig> {
-    console.log('Hey API called');
     const resolvedConfig = await this.processor({
       cwd: Config.getConfigRootDir(),
       configFile: this.filePath,
       packageJson: true,
     }).then((res) => {
-      console.log('heyapi load result', res);
       return this.findConfig(res.config);
     });
     return mergeWithDefaults(externalConfig, resolvedConfig);

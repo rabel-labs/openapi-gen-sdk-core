@@ -1,5 +1,6 @@
 import { Config } from '@/config/base';
 
-const resolvedConfig = await new Config().getConfig();
+export const ResolvedConfig = await new Config().load();
+const resolvedConfig = await ResolvedConfig.getConfig();
 
 export default resolvedConfig;
