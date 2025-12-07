@@ -16,13 +16,13 @@ export type ParserOperationIdConfig = {
    * 'snake' | 'camel' | 'pascal' | 'kebab'
    * @default 'camel'
    */
-  caseStyle?: 'snake' | 'camel' | 'pascal' | 'kebab';
+  case?: 'snake' | 'camel' | 'pascal' | 'kebab';
   /**
    * 'by' => by{paramName}
    * 'inline' => {paramName}
    * @default 'by'
    */
-  paramStyle?: 'by' | 'inline';
+  param?: 'by' | 'inline';
   /**
    * Skip refactoring if function returns true
    * @default undefined
@@ -35,7 +35,7 @@ export type ParserOperationIdConfig = {
 export const defaultParserOperationIdConfig: Required<ParserOperationIdConfig> = {
   rootWord: 'root',
   methodPosition: 'prefix',
-  caseStyle: 'camel',
-  paramStyle: 'by',
+  case: 'camel',
+  param: 'by',
   ignore: false,
 } as const;

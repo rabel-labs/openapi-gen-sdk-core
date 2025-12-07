@@ -35,7 +35,7 @@ const toTokens = (str: string): string[] => {
  * @param tokens - eg. ['a', 'b', 'c']
  * @returns - eg. 'aBC'
  */
-const toCase = (caseStyle: ParserOperationIdConfig['caseStyle'], tokens: string[]): string => {
+const toCase = (caseStyle: ParserOperationIdConfig['case'], tokens: string[]): string => {
   if (!tokens.length) return '';
   switch (caseStyle) {
     case 'snake':
@@ -86,7 +86,7 @@ export function operationIdNormalizer(options?: Partial<ParserOperationIdConfig>
     if (!path || path === '/') {
       const rootToken = [method.toLowerCase(), config.rootWord];
       if (config.methodPosition === 'suffix') rootToken.reverse();
-      return toCase(config.caseStyle, rootToken);
+      return toCase(config.case, rootToken);
     }
 
     //-> Parse segments...
@@ -98,7 +98,7 @@ export function operationIdNormalizer(options?: Partial<ParserOperationIdConfig>
     for (const seg of rawSegments) {
       if (isPathParam(seg)) {
         const paramName = seg.replace(/[\{\}]/g, '');
-        if (config.paramStyle === 'by') {
+        if (config.param === 'by') {
           paramTokens.push(paramName);
         } else {
           resourceTokens.push(paramName);
@@ -116,15 +116,15 @@ export function operationIdNormalizer(options?: Partial<ParserOperationIdConfig>
     }
 
     //-> Transform tokens to case...
-    const base = toCase(config.caseStyle, resourceTokens);
+    const base = toCase(config.case, resourceTokens);
 
     //-> Sprinkle param suffix...
     let paramSuffix = '';
-    if (paramTokens.length && config.paramStyle === 'by') {
-      if (config.caseStyle === 'snake' || config.caseStyle === 'kebab') {
-        paramSuffix = `${config.caseStyle === 'snake' ? '_' : '-'}by${
-          config.caseStyle === 'snake' ? '_' : '-'
-        }${paramTokens.join(config.caseStyle === 'snake' ? '_' : '-')}`;
+    if (paramTokens.length && config.param === 'by') {
+      if (config.case === 'snake' || config.case === 'kebab') {
+        paramSuffix = `${config.case === 'snake' ? '_' : '-'}by${
+          config.case === 'snake' ? '_' : '-'
+        }${paramTokens.join(config.case === 'snake' ? '_' : '-')}`;
       } else {
         paramSuffix = 'By' + paramTokens.map((p) => p[0].toUpperCase() + p.slice(1)).join('And');
       }
