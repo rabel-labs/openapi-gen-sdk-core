@@ -41,7 +41,6 @@ export class NpmPackage {
     if (config.syncVersion) {
       pkg.version = pkg['specnova'].version;
     }
-
     writeFileSync(NpmPackage.PKG_PATH, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
     this.packageJson = pkg;
   }

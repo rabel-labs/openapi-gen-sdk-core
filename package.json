@@ -2,10 +2,6 @@
   "type": "module",
   "name": "@rabel-labs/openapi-sdk-core",
   "version": "1.0.0",
-  "openapi": {
-    "source": "https://raw.githubusercontent.com/swagger-api/swagger-petstore/master/src/main/resources/openapi.yaml",
-    "version": "1.0.27"
-  },
   "description": "Core library for generating TypeScript SDKs from OpenAPI specs, managing patches, versions, and automation scripts.",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -14,6 +10,10 @@
     "dist/lib",
     "dist/bin"
   ],
+  "specnova": {
+    "source": "/Users/june/Desktop/GitHub/openapi-gen-sdk-core/snapshots/1.0.0/normalized.json",
+    "version": "1.0.0"
+  },
   "bin": {
     "openapi-gen": "dist/cli.js"
   },
@@ -94,9 +94,5 @@
       "prettier --write",
       "git add"
     ]
-  },
-  "specnova": {
-    "source": "https://raw.githubusercontent.com/davidkpiano/openapi-test/refs/heads/master/examples/swapi.json",
-    "version": "1.0.0"
   }
 }

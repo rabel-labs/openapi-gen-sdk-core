@@ -160,6 +160,10 @@ export class Snapshot {
     const { source } = await this.packageHandler.getPackageOpenApi();
     return this.load(source);
   }
+  async loadVersion(version: string): Promise<this> {
+    const { source } = await this.packageHandler.getPackageOpenApi();
+    return this.load(source);
+  }
   /**
    * Save the OpenAPI source to the snapshot path.
    * @returns - true if saved, false if failed
@@ -225,9 +229,13 @@ export class Snapshot {
    * @returns - true if saved, false if failed
    */
   async setMain() {
-    const { openapiInfo } = this.ensureComputed();
+    const { openapiInfo, path, fileNames, fileExtensions } = this.ensureComputed();
+    const fullNormalizedPath = pathJoin(
+      path,
+      `${fileNames.normalized}.${fileExtensions.normalized}`,
+    );
     this.packageHandler.editPackage({
-      source: this.sourceUrl,
+      source: fullNormalizedPath,
       version: openapiInfo.version,
     });
     return true;
