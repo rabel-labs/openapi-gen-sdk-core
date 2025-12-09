@@ -33,7 +33,6 @@ type SnapshotFolderDetailed = {
 type SnapshotFileNames = {
   source: string;
   normalized: string;
-  meta: string;
 };
 
 const SnapshotFileExtensionName = {
@@ -95,7 +94,6 @@ export const defaultSnapshotConfig: Required<SnapshotConfig> = {
   files: {
     source: SOURCE_FILENAME,
     normalized: NORMALIZED_FILENAME,
-    meta: META_FILENAME,
   },
   extensions: {
     source: InferKey,

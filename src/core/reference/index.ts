@@ -1,4 +1,5 @@
 import resolvedConfig from '@/config';
+import { infoExtracter } from '@/core/extracter';
 import { isSnapshotFileExtensionName } from '@/core/snapshot/config';
 import { OpenApiSource } from '@/utils';
 
@@ -125,9 +126,12 @@ export async function parseSource(source: string): Promise<OpenApiSource> {
   } else {
     console.log('✅ Parsed spec');
   }
+  //# Extract info
+  const info = infoExtracter.extract(parsed.result);
   //-
   return {
     parseResult: parsed.result,
+    info,
     source,
     extension,
     isExternal,

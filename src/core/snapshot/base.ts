@@ -3,15 +3,10 @@ import { defaultOpenapiGenConfig } from '@/config/default';
 import { OpenapiGenConfig } from '@/config/type';
 import { hasNormalize, mergeWithDefaults } from '@/config/utils';
 import converter from '@/core/converter';
-import { infoExtracter } from '@/core/extracter';
-import { Info } from '@/core/extracter/info/type';
 import parserCommander from '@/core/parser';
 import { parseSource } from '@/core/reference';
-import {
-  defaultSnapshotConfig,
-  SnapshotConfig,
-  SnapshotFileExtension,
-} from '@/core/snapshot/config';
+import { defaultSnapshotConfig, SnapshotConfig } from '@/core/snapshot/config';
+import { SnapshotMeta } from '@/core/snapshot/meta/base';
 import { NpmPackage } from '@/npm/base';
 import { OpenApiSource } from '@/types';
 
@@ -25,16 +20,10 @@ export class Snapshot {
   private readonly snapshotConfig: Required<SnapshotConfig>;
   private sourceUrl: string = '';
 
-  //= Load & compute
+  //= OpenAPI source
   private openapiSource: OpenApiSource | null = null;
-  private openapiInfo: Info | null = null;
-  private path: string | null = null;
-  private fileNames: SnapshotConfig['files'] | null = null;
-  private fileExtensions: {
-    source: SnapshotFileExtension;
-    normalized: SnapshotFileExtension;
-    meta: SnapshotFileExtension;
-  } | null = null;
+  //= Meta
+  private meta: SnapshotMeta | null = null;
 
   //# Constructor
   constructor(config?: OpenapiGenConfig) {
@@ -51,85 +40,6 @@ export class Snapshot {
     this.openapiSource = await parseSource(this.sourceUrl);
     return this.openapiSource;
   }
-  //-> 2. lazily compute and cache extracted Info
-  public getOpenApiInfo() {
-    if (this.openapiInfo) return this.openapiInfo;
-    if (!this.openapiSource) return null;
-    this.openapiInfo = infoExtracter.extract(this.openapiSource.parseResult);
-    return this.openapiInfo;
-  }
-  //-> 3. lazily compute and cache output path
-  public getPath(version?: string) {
-    if (this.path) return this.path;
-    const info = this.getOpenApiInfo();
-    if (!info) return null;
-    const rootDir =
-      typeof this.snapshotConfig.folder === 'string'
-        ? this.snapshotConfig.folder
-        : this.snapshotConfig.folder.root;
-    const snapshotVersion = version ? version : info.version;
-    this.path = `${process.cwd()}/${rootDir}/${snapshotVersion}`;
-    return this.path;
-  }
-  //-> 4. lazily compute and cache file names
-  public getFileNames() {
-    if (this.fileNames) return this.fileNames;
-    this.fileNames = {
-      source: `${this.snapshotConfig.files.source}`,
-      normalized: `${this.snapshotConfig.files.normalized}`,
-      meta: `${this.snapshotConfig.files.meta}`,
-    };
-    return this.fileNames;
-  }
-  //-> 5. lazily compute and cache values file extensions
-  public getFileExtensions() {
-    if (this.fileExtensions) return this.fileExtensions;
-    let sourceExtension: SnapshotFileExtension;
-    switch (this.snapshotConfig.extensions.source) {
-      case 'json':
-        sourceExtension = 'json';
-        break;
-      case 'yaml':
-        sourceExtension = 'yaml';
-        break;
-      case 'infer':
-      default:
-        sourceExtension = this.openapiSource!.extension;
-    }
-    let normalizedExtension: SnapshotFileExtension;
-    switch (this.snapshotConfig.extensions.normalized) {
-      case 'yaml':
-        normalizedExtension = 'yaml';
-        break;
-      case 'infer':
-        normalizedExtension = this.openapiSource!.extension;
-      case 'json':
-      default:
-        normalizedExtension = 'json';
-        break;
-    }
-    let metaExtension = this.snapshotConfig.extensions.meta;
-    this.fileExtensions = {
-      source: sourceExtension,
-      normalized: normalizedExtension,
-      meta: metaExtension,
-    };
-    return this.fileExtensions;
-  }
-
-  //-> Precompute and cache values for later use.
-  private compute() {
-    this.openapiInfo = this.getOpenApiInfo();
-    this.path = this.getPath();
-    this.fileNames = this.getFileNames();
-    this.fileExtensions = this.getFileExtensions();
-    return {
-      openapiInfo: this.openapiInfo,
-      path: this.path,
-      fileNames: this.fileNames,
-      fileExtensions: this.fileExtensions,
-    };
-  }
 
   //-> Ensure getters
   private async ensureOpenApiSource(): Promise<OpenApiSource> {
@@ -137,22 +47,26 @@ export class Snapshot {
     if (!openapiSource) throw new Error('Snapshot: no OpenAPI source found');
     return openapiSource;
   }
-  private ensureComputed() {
-    const { openapiInfo, path, fileNames, fileExtensions } = this.compute();
-    if (openapiInfo && path && fileNames && fileExtensions)
-      return { openapiInfo, path, fileNames, fileExtensions };
-    throw new Error('Snapshot: no OpenAPI source found');
+  private async ensureMeta(): Promise<SnapshotMeta> {
+    if (!this.meta) throw new Error('Snapshot: no meta found');
+    return this.meta;
   }
+
   /*
    * Load the OpenAPI source and compute the snapshot path.
    * @returns - this
    */
   async load(source: string): Promise<this> {
     this.sourceUrl = source;
-    await this.ensureOpenApiSource();
-    this.ensureComputed();
+    const openapiSource = await this.ensureOpenApiSource();
+    if (openapiSource.isExternal) {
+      this.meta = new SnapshotMeta({ openapiSource, config: this.snapshotConfig });
+    } else {
+      this.meta = SnapshotMeta.pull(openapiSource.info, this.snapshotConfig);
+    }
     return this;
   }
+
   /**
    * Load the main spec version from package.json
    * @returns - this
@@ -161,34 +75,21 @@ export class Snapshot {
     const { source } = await this.packageHandler.getPackageOpenApi();
     return this.load(source);
   }
-  async loadVersion(version: string): Promise<this> {
-    let currentPath = this.getPath();
-    try {
-      const path = this.getPath(version);
-      const { fileExtensions, fileNames } = this.ensureComputed();
-      const versionNormalized = `${path}/${fileNames.normalized}.${fileExtensions.normalized}`;
-      return this.load(versionNormalized);
-    } catch (e) {
-      console.error('❌ Failed to load version', e);
-      this.path = currentPath;
-    }
-    return Promise.resolve(this);
-  }
+
   /**
    * Save the OpenAPI source to the snapshot path.
    * @returns - true if saved, false if failed
    */
   async saveSource(): Promise<boolean> {
     const openapiSource = await this.ensureOpenApiSource();
-    const { path, fileNames, fileExtensions } = this.ensureComputed();
+    const { path, files } = await this.ensureMeta();
     //# Get source file location
-    const fullFileName = `${fileNames.source}.${fileExtensions.source}`;
-    const fullSourcePath = pathJoin(path, fullFileName);
+    const fullSourcePath = pathJoin(path, files.names.source);
     //# Write source
-    const sourceOutText = converter.fromApiDom(openapiSource.parseResult, fileExtensions.source);
+    const sourceOutText = converter.fromApiDom(openapiSource.parseResult, files.extensions.source);
     try {
       await mkdir(path, { recursive: true }); // Create directory
-      writeFile(fullSourcePath, sourceOutText, 'utf-8'); // Write source
+      writeFile(fullSourcePath, sourceOutText); // Write source
       console.log(`✅ Saved source to ${fullSourcePath}`);
       return true;
     } catch (e) {
@@ -208,16 +109,15 @@ export class Snapshot {
     }
     //# Get normalized file location
     const openapiSource = await this.ensureOpenApiSource();
-    const { path, fileNames, fileExtensions } = this.ensureComputed();
-    const fullFileNames = `${fileNames.normalized}.${fileExtensions.normalized}`;
-    const fullNormalizedPath = pathJoin(path, fullFileNames);
+    const { path, files } = await this.ensureMeta();
+    const fullNormalizedPath = pathJoin(path, files.names.normalized);
     //# Apply normalization
     const normalizedElement = parserCommander.byConfig(openapiSource.parseResult, this.config);
     //# Write normalized
-    const normalizedOutText = converter.fromApiDom(normalizedElement, fileExtensions.normalized);
+    const normalizedOutText = converter.fromApiDom(normalizedElement, files.extensions.normalized);
     try {
       await mkdir(path, { recursive: true }); // Create directory
-      writeFile(fullNormalizedPath, normalizedOutText, 'utf-8');
+      writeFile(fullNormalizedPath, normalizedOutText);
       console.log(`✅ Saved normalized to ${fullNormalizedPath}`);
       return true;
     } catch (e) {
@@ -239,14 +139,11 @@ export class Snapshot {
    * @returns - true if saved, false if failed
    */
   async setMain() {
-    const { openapiInfo, path, fileNames, fileExtensions } = this.ensureComputed();
-    const fullNormalizedPath = pathJoin(
-      path,
-      `${fileNames.normalized}.${fileExtensions.normalized}`,
-    );
+    const { info, path, files } = await this.ensureMeta();
+    const fullNormalizedPath = pathJoin(path, files.names.normalized);
     this.packageHandler.editPackage({
       source: fullNormalizedPath,
-      version: openapiInfo.version,
+      version: info.version,
     });
     return true;
   }
