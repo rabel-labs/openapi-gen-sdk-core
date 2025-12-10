@@ -1,5 +1,5 @@
 import { Info } from '@/core/extracter/info/type';
-import { SnapshotConfig, SnapshotFileExtension } from '@/core/snapshot/config';
+import { SnapshotConfig, SnapshotFileExtension, SnapshotFileSlots } from '@/core/snapshot/config';
 import { buildMetaFile, buildMetaPath, buildMetaSourceFiles } from '@/core/snapshot/meta/lib/build';
 import { compareSha256, digestString, Sha256String } from '@/core/snapshot/meta/lib/compare';
 import { OpenApiSource } from '@/utils';
@@ -12,22 +12,15 @@ const TEMP_FOLDER = '.tmp-write';
 
 export type SnapshotMetaFiles = {
   names: {
-    source: string;
-    normalized: string;
+    [key in SnapshotFileSlots]: string;
   };
   extensions: {
-    source: SnapshotFileExtension;
-    normalized: SnapshotFileExtension;
+    [key in SnapshotFileSlots]: SnapshotFileExtension;
   };
 };
-export type SnapshoMetaExtension = {
-  source: SnapshotFileExtension;
-  normalized: SnapshotFileExtension;
-};
+
 export type SnapshotMetaHashes = {
-  source: Promise<Sha256String> | null;
-  normalized: Promise<Sha256String> | null;
-  meta: Promise<Sha256String> | null;
+  [key in SnapshotFileSlots]: Promise<Sha256String> | null;
 };
 
 type SnapshotMetaData = {
@@ -39,22 +32,22 @@ type SnapshotMetaData = {
 };
 
 type SnapshotMetaDigestors = {
-  [key in keyof SnapshotMetaHashes]?: string;
+  [key in SnapshotFileSlots]?: string;
 };
 
 type SnapshotMetaDocuments = {
-  [key in keyof SnapshotMetaHashes]?: {
+  [key in SnapshotFileSlots]?: {
     text: string;
     digest: Promise<Sha256String>;
   };
 };
 
 class SnapshotMetaImpl {
+  private lock: boolean = false;
   private data: SnapshotMetaData;
   protected softData: SnapshotMetaData;
   protected documents: SnapshotMetaDocuments = {};
 
-  private lock: boolean = false;
   constructor(data: SnapshotMetaData) {
     this.data = data;
     this.softData = data;
@@ -79,19 +72,24 @@ class SnapshotMetaImpl {
     const documentEntries = Object.entries(this.documents);
     const tempFolder = pathJoin(this.softData.path, TEMP_FOLDER);
     const destFolder = this.softData.path;
+    const files = this.softData.files;
     await mkdir(tempFolder, { recursive: true });
     try {
       //# Write all files into temp folder
       await Promise.all(
         documentEntries.map(([key, value]) => {
           const { text } = value;
-          return writeFile(pathJoin(tempFolder, key), text);
+          const file = files.names[key as SnapshotFileSlots];
+          return writeFile(pathJoin(tempFolder, file), text);
         }),
       );
       //# Move them only if ALL writes succeeded
       await Promise.all(
         documentEntries.map(([key]) => {
-          return rename(pathJoin(tempFolder, key), pathJoin(destFolder, key));
+          return rename(
+            pathJoin(tempFolder, files.names[key as SnapshotFileSlots]),
+            pathJoin(destFolder, files.names[key as SnapshotFileSlots]),
+          );
         }),
       );
       //-> if successful, apply & clear

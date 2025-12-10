@@ -30,22 +30,30 @@ type SnapshotFolderDetailed = {
 /**
  * Snapshot files
  **/
-type SnapshotFileNames = {
-  source: string;
-  normalized: string;
+const SnapshotFileSlots = {
+  source: 'source',
+  normalized: 'normalized',
+  meta: 'meta',
+} as const;
+export type SnapshotFileSlots = keyof typeof SnapshotFileSlots;
+
+type SnapshotFiles = {
+  [key in SnapshotFileSlots]: string;
 };
 
+/**
+ * Snapshot file extensions.
+ */
 const SnapshotFileExtensionName = {
   json: 'json',
   yaml: 'yaml',
 } as const;
-
 export type SnapshotFileExtension = keyof typeof SnapshotFileExtensionName;
 
 type SnapshotExtensions = {
-  source: SnapshotFileExtension | InferKey;
-  normalized: SnapshotFileExtension | InferKey;
-  meta: 'json';
+  [key in Exclude<SnapshotFileSlots, 'meta'>]: SnapshotFileExtension | InferKey;
+} & {
+  meta: typeof SnapshotFileExtensionName.json;
 };
 
 type SnapshotFolder = SnapshotFolderRoot | SnapshotFolderDetailed;
@@ -64,7 +72,7 @@ export type SnapshotConfig = {
    * Snapshot files.
    * @default {...}
    */
-  files?: SnapshotFileNames;
+  files?: SnapshotFiles;
   /**
    * Snapshot file extensions.
    * @default {...}
@@ -94,6 +102,7 @@ export const defaultSnapshotConfig: Required<SnapshotConfig> = {
   files: {
     source: SOURCE_FILENAME,
     normalized: NORMALIZED_FILENAME,
+    meta: META_FILENAME,
   },
   extensions: {
     source: InferKey,

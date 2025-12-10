@@ -8,7 +8,7 @@ const META_FILE = `meta.${META_EXT}`;
 export function buildMetaPath(snapshotConfig: Required<SnapshotConfig>, version: string): string {
   const rootDir =
     typeof snapshotConfig.folder === 'string' ? snapshotConfig.folder : snapshotConfig.folder.root;
-  return `${process.cwd()}/${rootDir}/${version}`;
+  return `${rootDir}/${version}`;
 }
 
 export function buildMetaFile(): { file: string; extension: SnapshotFileExtension } {
@@ -52,11 +52,13 @@ export function buildMetaSourceFiles(
   const extensions = {
     source: sourceExtension,
     normalized: normalizedExtension,
+    meta: 'json',
   } satisfies SnapshotMetaFiles['extensions'];
   //-> Set names
   const names = {
     source: `${config.files.source}.${extensions.source}`,
     normalized: `${config.files.normalized}.${extensions.normalized}`,
+    meta: `${config.files.meta}.${extensions.meta}`,
   } satisfies SnapshotMetaFiles['names'];
 
   return {

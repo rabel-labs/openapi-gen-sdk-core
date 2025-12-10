@@ -31,14 +31,12 @@ export class Snapshot {
     //-> Apply snapshot config to default snapshot config
     this.snapshotConfig = mergeWithDefaults(defaultSnapshotConfig, this.config.snapshot);
   }
-
   //-> Lazily compute and cache parsed OpenAPI source
   public async getOpenApiSource() {
     if (this.openapiSource) return this.openapiSource;
     this.openapiSource = await parseSource(this.sourceUrl);
     return this.openapiSource;
   }
-
   //-> Ensure data
   private async ensureOpenApiSource(): Promise<OpenApiSource> {
     const openapiSource = await this.getOpenApiSource();
@@ -50,7 +48,6 @@ export class Snapshot {
     //!TODO: Validate meta
     return this.meta;
   }
-
   /*
    * Load the OpenAPI source;
    * if meta is found, load the meta;
@@ -126,7 +123,7 @@ export class Snapshot {
     const normalizedOutText = converter.fromApiDom(normalizedElement, files.extensions.normalized);
     try {
       meta.digest({
-        source: normalizedOutText,
+        normalized: normalizedOutText,
       });
       return true;
     } catch (e) {
