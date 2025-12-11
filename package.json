@@ -16,7 +16,9 @@
     "lint-staged": "^16.2.7"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint": "turbo run lint",
+    "format": "turbo run format"
   },
   "lint-staged": {
     "packages/**/*.{ts,tsx,js,jsx}": [
