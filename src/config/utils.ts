@@ -2,9 +2,6 @@ import { defaultOpenapiGenConfig } from '@/config/default';
 import { OpenapiGenConfig } from '@/config/type';
 
 /**
- * Generic "defaults + overrides" merger that removes all undefined values
- */
-/**
  * Generic "defaults + overrides" deep merger that removes all undefined values
  */
 export function mergeWithDefaults<T extends object>(

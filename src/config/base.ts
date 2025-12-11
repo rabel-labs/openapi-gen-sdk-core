@@ -2,7 +2,7 @@ import { BaseAdapter } from '@/config/adapters/base';
 import { DefaultAdapter } from '@/config/adapters/defaultAdapter';
 import { defaultOpenapiGenConfig } from '@/config/default';
 import { loadEnvConfig } from '@/config/env';
-import { OpenapiGenConfig } from '@/config/type';
+import { OpenapiGenConfig, ResolvedOpenapiGenConfig } from '@/config/type';
 import { mergeWithDefaults } from '@/config/utils';
 
 type Adapter = BaseAdapter;
@@ -17,7 +17,7 @@ await loadEnvConfig();
 
 export class Config {
   private adapter: Adapter;
-  private resolved: Promise<Required<OpenapiGenConfig>> | Required<OpenapiGenConfig>;
+  private resolved: Promise<ResolvedOpenapiGenConfig> | ResolvedOpenapiGenConfig;
 
   //-> Static Helpers
   static getConfigRootDir(subPath?: string): string {

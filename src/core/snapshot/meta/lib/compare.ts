@@ -24,23 +24,42 @@ export async function digestString(text: string): Promise<Sha256String> {
 }
 
 /**
- * Compare two sha256 strings.
+ * Compare a sha256 string to a target file.
  * @param digests - Promise<[Sha256String, Sha256String]>
  * @returns - Resolve -> true if identical
  *            Reject -> Failed
  */
 export async function compareSha256(
-  digests: [Promise<Sha256String> | Sha256String, Promise<Sha256String> | Sha256String],
+  digests: Promise<Sha256String> | Sha256String,
+  filePath: string,
 ): Promise<boolean> {
   try {
-    const [hash1, hash2] = await Promise.race(digests);
-    if (hash1 === hash2) {
-      Promise.resolve(true);
-    } else {
-      Promise.reject();
+    //# Load digest
+    const [digest] = await Promise.race([digests]);
+    switch (typeof digest) {
+      //... accepted types
+      case 'string':
+        break;
+      //... invalid
+      default:
+        return Promise.reject();
     }
+    //# Load file to digest
+    const fileDigest = await digestFile(filePath);
+    switch (typeof fileDigest) {
+      //... accepted types
+      case 'string':
+        break;
+      //... invalid
+      default:
+        return Promise.reject();
+    }
+    //# Compare
+    return Promise.resolve(digest === fileDigest);
   } catch (error) {
+    //# Any error
     Promise.reject(error);
   }
-  return false;
+  //# Default
+  return Promise.resolve(false);
 }

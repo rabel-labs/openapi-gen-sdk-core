@@ -8,6 +8,7 @@ import { OpenApiSource } from '@/utils';
 import { readFileSync } from 'fs';
 import { mkdir, rename, rm, writeFile } from 'fs/promises';
 import { join as pathJoin } from 'path';
+import { isDeepStrictEqual } from 'util';
 
 const TEMP_FOLDER = '.tmp-write';
 
@@ -45,20 +46,20 @@ type SnapshotMetaDocuments = {
 class SnapshotMetaImpl {
   private lock: boolean = false;
   private data: SnapshotMetaData;
-  protected softData: SnapshotMetaData;
+  protected editData: SnapshotMetaData;
   protected documents: SnapshotMetaDocuments = {};
 
   constructor(data: SnapshotMetaData) {
     this.data = data;
-    this.softData = data;
+    this.editData = data;
   }
 
   private apply() {
-    this.softData = this.data;
+    this.editData = this.data;
   }
 
   private clear() {
-    this.softData = this.data;
+    this.editData = this.data;
     this.documents = {};
     this.lock = false;
   }
@@ -99,7 +100,7 @@ class SnapshotMetaImpl {
           this.documents[key as keyof SnapshotMetaHashes] = {
             text: digester[key],
           };
-          this.softData.sha256[key] = digestString(digester[key]);
+          this.editData.sha256[key] = digestString(digester[key]);
           break;
         case 'meta':
           if (!digester[key]) continue;
@@ -115,13 +116,13 @@ class SnapshotMetaImpl {
 
   private async prepareMetaSubmit() {
     //# Await Meta hashes
-    for (const key in this.softData.sha256) {
-      if (!this.softData.sha256[key as keyof SnapshotMetaHashes]) continue;
-      this.softData.sha256[key as keyof SnapshotMetaHashes] =
-        await this.softData.sha256[key as keyof SnapshotMetaHashes];
+    for (const key in this.editData.sha256) {
+      if (!this.editData.sha256[key as keyof SnapshotMetaHashes]) continue;
+      this.editData.sha256[key as keyof SnapshotMetaHashes] =
+        await this.editData.sha256[key as keyof SnapshotMetaHashes];
     }
     //# Add Meta document
-    const text = converter.fromJson(this.softData, true);
+    const text = converter.fromJson(this.editData, true);
     await this.addDocument({
       meta: text,
     });
@@ -135,9 +136,9 @@ class SnapshotMetaImpl {
     //# Prepare data;
     this.ensureLocked();
     const documentEntries = Object.entries(this.documents);
-    const tempFolder = pathJoin(this.softData.path, TEMP_FOLDER);
-    const destFolder = this.softData.path;
-    const files = this.softData.files;
+    const tempFolder = pathJoin(this.editData.path, TEMP_FOLDER);
+    const destFolder = this.editData.path;
+    const files = this.editData.files;
     await mkdir(tempFolder, { recursive: true });
     try {
       //# Write all files into temp folder
@@ -158,7 +159,7 @@ class SnapshotMetaImpl {
         }),
       );
       //# if successful, apply & clear
-      console.log(`✅ Applied changes to ${this.softData.path}`);
+      console.log(`✅ Applied changes to ${this.editData.path}`);
       this.apply();
       this.clear();
     } catch (e) {
@@ -222,31 +223,80 @@ export class SnapshotMeta extends SnapshotMetaImpl {
       throw new Error('Snapshot: failed to load meta');
     }
   }
+
   /**
-   * Compare the meta to another meta.
+   * Validate the digest compared to this snapshot files
+   * @param meta - The meta to validate.
+   * @param fileTarget - The file to validate.
+   * @returns - true if valid, false if not.
+   */
+  async validateDigest(
+    meta: SnapshotMeta = this,
+    fileTarget: keyof SnapshotMetaHashes,
+  ): Promise<boolean> {
+    //# Get This snapshot files
+    const { path, files } = this.get();
+    //# Get target snapshot hases
+    const { sha256: targetHashes } = meta.get();
+    const hash = targetHashes[fileTarget];
+    //# Validate
+    const filePath = pathJoin(path, files.names[fileTarget]);
+    if (!hash) return Promise.resolve(false);
+    return compareSha256(hash, filePath);
+  }
+  /**
+   * Make other is from the same meta family.
+   * Via comparing info,
+   * @param other - The other meta.
+   * @returns - true if identical, false if not */
+  async softCompare(other: SnapshotMeta): Promise<boolean> {
+    const thisData = this.get();
+    const otherData = other.get();
+    const matches = [
+      //# Version & path
+      thisData.info.title === otherData.info.title,
+      isDeepStrictEqual(thisData.info.license, otherData.info.license),
+    ];
+    return matches.every((match) => match === true);
+  }
+  /**
+   * Make sure metas are identical copies.
    * @param other - The other meta.
    * @returns - true if identical, false if not
    */
-  async compare(other: SnapshotMeta): Promise<boolean> {
-    const sha256Compares = Object.entries(this.softData.sha256).map(([indexKey, indexValue]) => {
-      const otherValue = other.softData.sha256[indexKey as keyof SnapshotMetaHashes];
-      const identical = Boolean(indexValue) === Boolean(otherValue);
-      if (identical && indexValue && otherValue) {
-        //Is: Identical && not null
+  async stricCompare(other: SnapshotMeta): Promise<boolean> {
+    //# Get Sha256 Comparisons rules
+    const thisData = this.get();
+    const otherData = other.get();
+    const sha256Compares = Object.entries(thisData.sha256).map(([shaKey, thisSha]) => {
+      const otherSha = other.editData.sha256[shaKey as keyof SnapshotMetaHashes];
+      const identical = Boolean(thisSha) === Boolean(otherSha);
+      if (identical && thisSha && otherSha) {
+        //Is: Identical && not null(true)
         //-> trigger comparison
-        return compareSha256([indexValue, otherValue]);
+        const compare = Promise.all([
+          this.validateDigest(this, shaKey as keyof SnapshotMetaHashes),
+          this.validateDigest(other, shaKey as keyof SnapshotMetaHashes),
+        ]).then(([thisValid, otherValid]) => {
+          return thisValid && otherValid;
+        });
+        return compare;
       } else {
-        //Is: Not identical(false) : Identical && null(true)
+        //Is either: Not identical(false) : Identical && null (true)
         return identical;
       }
     });
+    //# Compile all matches rules
     const matches = [
       //# Version & path
-      this.softData.path === other.softData.path,
-      this.softData.info.version === other.softData.info.version,
+      thisData.path === otherData.path,
+      thisData.info.version === otherData.info.version,
+      //# config
+      isDeepStrictEqual(thisData.config, otherData.config),
       //# sha256
       await Promise.race(sha256Compares),
     ];
+    //# Return true if all matches rules are true
     return matches.every((match) => match === true);
   }
   /**

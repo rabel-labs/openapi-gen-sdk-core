@@ -1,6 +1,6 @@
 import resolvedConfig from '@/config';
 import { defaultOpenapiGenConfig } from '@/config/default';
-import { OpenapiGenConfig } from '@/config/type';
+import { OpenapiGenConfig, ResolvedOpenapiGenConfig } from '@/config/type';
 import { hasNormalize, mergeWithDefaults } from '@/config/utils';
 import converter from '@/core/converter';
 import parserCommander from '@/core/parser';
@@ -15,7 +15,7 @@ import { join as pathJoin } from 'path';
 export class Snapshot {
   //= initialize
   private packageHandler: NpmPackage = new NpmPackage();
-  private readonly config: Required<OpenapiGenConfig> = resolvedConfig;
+  private readonly config: ResolvedOpenapiGenConfig = resolvedConfig;
   private readonly snapshotConfig: Required<SnapshotConfig>;
   private sourceUrl: string = '';
 
@@ -57,11 +57,20 @@ export class Snapshot {
   async load(source: string): Promise<this> {
     this.sourceUrl = source;
     const openapiSource = await this.ensureOpenApiSource();
-    //!TODO: If this.meta; Compare meta
+    const hasMeta = this.meta ? true : false;
+    // Ccompute the snapshot path and create a new meta.
+    let newMeta: SnapshotMeta;
     if (openapiSource.isExternal) {
-      this.meta = new SnapshotMeta({ openapiSource, config: this.snapshotConfig });
+      newMeta = new SnapshotMeta({ openapiSource, config: this.snapshotConfig });
     } else {
-      this.meta = SnapshotMeta.pull(openapiSource.info.version, this.snapshotConfig);
+      newMeta = SnapshotMeta.pull(openapiSource.info.version, this.snapshotConfig);
+    }
+    // If already hase a meta
+    if (!hasMeta) {
+      // Compare validity to the new meta
+      const isValid = hasMeta ? await this.meta?.softCompare(newMeta) : true;
+      // Set the new meta
+      this.meta = isValid ? newMeta : this.meta;
     }
     return this;
   }
@@ -79,8 +88,10 @@ export class Snapshot {
    * @returns - this
    */
   async loadVersion(version: string): Promise<this> {
-    const { path, files } = SnapshotMeta.pull(version, this.snapshotConfig).get();
+    const newMeta = await SnapshotMeta.pull(version, this.snapshotConfig);
+    const { path, files } = newMeta.get();
     const source = pathJoin(path, files.names.source);
+    this.meta = newMeta;
     return this.load(source);
   }
   /**
