@@ -1,0 +1,35 @@
+{
+  "type": "module",
+  "name": "@specnova/adapters",
+  "version": "1.0.0",
+  "description": "OpenAPI SpecNova Adapters",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./hey-api": {
+      "import": "./dist/ahey-api/index.esm.js",
+      "require": "./dist/ahey-api/index.cjs.js"
+    }
+  },
+  "devDependencies": {
+    "@specnova/core": "workspace:*",
+    "@specnova/eslint-config": "workspace:*",
+    "@types/node": "^20.19.25",
+    "tsup": "^8.5.1",
+    "turbo": "^2.6.3",
+    "typescript": "^5.9.3"
+  },
+  "optionalDependencies": {
+    "@hey-api/openapi-ts": "^0.88.0"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.19.0"
+}

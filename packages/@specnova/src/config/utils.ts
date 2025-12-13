@@ -1,5 +1,5 @@
 import { defaultSpecnovaGenConfig } from '@/config/default';
-import { SpecnovaConfig, Resolved } from '@/config/type';
+import { Resolved, SpecnovaConfig } from '@/config/type';
 
 /**
  * Generic "defaults + overrides" deep merger that removes all undefined values

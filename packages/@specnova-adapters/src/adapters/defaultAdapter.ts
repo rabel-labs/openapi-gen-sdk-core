@@ -1,6 +1,6 @@
-import { BaseAdapter, BaseAdapterOptionsWithFile, FileAdapter } from '@/config/adapters/base';
+import { BaseAdapter, BaseAdapterOptionsWithFile, FileAdapter } from '@/adapters/base';
 import { Config } from '@/config/base';
-import { ResolvedSpecnovaConfig, SpecnovaConfig } from '@/config/type';
+import { SpecnovaConfig, ResolvedSpecnovaConfig } from '@/config/type';
 import { mergeWithDefaults } from '@/config/utils';
 
 import { loadConfig } from 'c12';

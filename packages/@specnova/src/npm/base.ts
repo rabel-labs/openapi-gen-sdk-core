@@ -1,4 +1,4 @@
-import resolvedConfig from '@/config';
+import { getResolvedConfig } from '@/config/resolved';
 import converter from '@/core/converter';
 
 import { readFileSync, writeFileSync } from 'fs';
@@ -16,8 +16,6 @@ type PackageJson = {
   [key: string]: string | number | boolean | Object;
 };
 
-const config = resolvedConfig;
-
 export class NpmPackage {
   static PKG_PATH = path(process.cwd(), 'package.json');
   private packageJson: PackageJson;
@@ -31,7 +29,8 @@ export class NpmPackage {
     this.packageJson = NpmPackage.getPackage();
   }
 
-  editPackage(values: Partial<SpecNovaInfo>) {
+  async editPackage(values: Partial<SpecNovaInfo>) {
+    const config = await getResolvedConfig();
     const pkg = this.packageJson;
     // Merge values
     pkg['specnova'] = {

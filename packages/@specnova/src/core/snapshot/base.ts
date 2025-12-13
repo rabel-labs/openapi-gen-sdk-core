@@ -1,4 +1,4 @@
-import resolvedConfig from '@/config';
+import { getResolvedConfig } from '@/config/resolved';
 import { ResolvedSpecnovaConfig, SpecnovaConfig } from '@/config/type';
 import { hasNormalize, mergeWithDefaults } from '@/config/utils';
 import converter from '@/core/converter';
@@ -13,7 +13,8 @@ import { join as pathJoin } from 'path';
 export class Snapshot {
   //= initialize
   private packageHandler: NpmPackage = new NpmPackage();
-  private readonly config: ResolvedSpecnovaConfig = resolvedConfig;
+  private userConfig: ResolvedSpecnovaConfig | null = null;
+  private readonly baseConfig: SpecnovaConfig = {};
   private sourceUrl: string = '';
 
   //= OpenAPI source
@@ -21,10 +22,21 @@ export class Snapshot {
   //= Meta
   private meta: SnapshotMeta | null = null;
 
+  //= Config
+  private async getFullConfig(): Promise<ResolvedSpecnovaConfig> {
+    //= Appy user config to base config
+    if (!this.userConfig) {
+      this.userConfig = await getResolvedConfig();
+    }
+    return mergeWithDefaults(this.userConfig, this.baseConfig);
+  }
+
   //# Constructor
   constructor(config?: SpecnovaConfig) {
-    //-> Apply config to default config
-    this.config = mergeWithDefaults(this.config, config);
+    //= Apply config
+    if (config) {
+      this.baseConfig = config;
+    }
   }
   //-> Lazily compute and cache parsed OpenAPI source
   public async getSpecnovaSource() {
@@ -50,15 +62,16 @@ export class Snapshot {
    * @returns - this
    */
   async load(source: string): Promise<this> {
+    const config = await this.getFullConfig();
     this.sourceUrl = source;
     const specnovaSource = await this.ensureSpecnovaSource();
     const hasMeta = !!this.meta;
     // Ccompute the snapshot path and create a new meta.
     let newMeta: SnapshotMeta;
     if (specnovaSource.isExternal) {
-      newMeta = new SnapshotMeta({ specnovaSource, config: this.config });
+      newMeta = new SnapshotMeta({ specnovaSource, config });
     } else {
-      newMeta = SnapshotMeta.pull(specnovaSource.info.version, this.config);
+      newMeta = SnapshotMeta.pull(specnovaSource.info.version, config);
     }
     // If already hase a meta
     if (!hasMeta) {
@@ -83,7 +96,8 @@ export class Snapshot {
    * @returns - this
    */
   async loadVersion(version: string): Promise<this> {
-    const newMeta = SnapshotMeta.pull(version, this.config);
+    const config = await this.getFullConfig();
+    const newMeta = SnapshotMeta.pull(version, config);
     const { path, files } = newMeta.get();
     const source = pathJoin(path, files.names.source);
     this.meta = newMeta;
@@ -114,8 +128,9 @@ export class Snapshot {
    * @returns - true if saved, false if failed
    */
   async saveNormalized(): Promise<boolean> {
+    const config = await this.getFullConfig();
     //# Check if normalization is needed
-    if (!hasNormalize(this.config)) {
+    if (!hasNormalize(config)) {
       console.log('✅ No normalization settings found');
       return true;
     }
@@ -124,7 +139,7 @@ export class Snapshot {
     const meta = this.ensureMeta();
     const { files } = meta.get();
     //# Apply normalization
-    const normalizedElement = parserCommander.byConfig(specnovaSource.parseResult, this.config);
+    const normalizedElement = parserCommander.byConfig(specnovaSource.parseResult, config);
     //# Write normalized
     const normalizedOutText = converter.fromApiDom(normalizedElement, files.extensions.normalized);
     try {

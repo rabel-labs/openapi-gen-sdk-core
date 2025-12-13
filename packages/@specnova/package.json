@@ -3,9 +3,6 @@
   "name": "@specnova/core",
   "version": "1.0.0",
   "description": "Core library for generating TypeScript SDKs from OpenAPI specs, managing patches, versions, and automation scripts.",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist/lib",
     "dist/bin"

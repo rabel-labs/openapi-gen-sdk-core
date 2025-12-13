@@ -168,6 +168,31 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/@specnova-adapters:
+    devDependencies:
+      '@specnova/core':
+        specifier: workspace:*
+        version: link:../@specnova
+      '@specnova/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@types/node':
+        specifier: ^20.19.25
+        version: 20.19.25
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(jiti@2.6.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+      turbo:
+        specifier: ^2.6.3
+        version: 2.6.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+    optionalDependencies:
+      '@hey-api/openapi-ts':
+        specifier: ^0.88.0
+        version: 0.88.0(typescript@5.9.3)
+
   packages/eslint-config:
     devDependencies:
       '@eslint/js':

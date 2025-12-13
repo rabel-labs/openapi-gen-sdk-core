@@ -12,10 +12,8 @@ type ConfigOptions = {
   config?: Partial<SpecnovaConfig>;
 };
 
-// Apply & load env config
-await loadEnvConfig();
-
 export class Config {
+  private isLoaded = false;
   private adapter: Adapter;
   private resolved: Promise<ResolvedSpecnovaConfig> | ResolvedSpecnovaConfig;
 
@@ -23,6 +21,10 @@ export class Config {
   static getConfigRootDir(subPath?: string): string {
     const path = subPath ? subPath : process.env.SPECNOVA_CONFIG_PATH;
     return `${process.cwd()}${path ? `/${path}` : ''}`;
+  }
+
+  private static async loadEnvConfig() {
+    await loadEnvConfig();
   }
 
   constructor(options?: ConfigOptions) {
@@ -46,14 +48,18 @@ export class Config {
    * @returns - SpecnovaGenConfig
    */
   public async load() {
+    // load env config first & apply adapter
+    await Config.loadEnvConfig();
     await this.applyAdapter();
+    this.isLoaded = true;
     return this;
   }
   /**
    * Get resolved config.
    * @returns - SpecnovaGenConfig
    */
-  async getConfig() {
+  async getConfig(): Promise<ResolvedSpecnovaConfig> {
+    if (!this.isLoaded) throw new Error('Config: config is not loaded');
     return await Promise.resolve(this.resolved);
   }
 }
