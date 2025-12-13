@@ -7,12 +7,12 @@ import { mergeWithDefaults } from '@/config/utils';
 
 type Adapter = BaseAdapter;
 
-type ConfigOptions = {
+export type UserConfigOptions = {
   adapter?: Adapter;
   config?: Partial<SpecnovaConfig>;
 };
 
-export class Config {
+export class UserConfig {
   private isLoaded = false;
   private adapter: Adapter;
   private resolved: Promise<ResolvedSpecnovaConfig> | ResolvedSpecnovaConfig;
@@ -27,7 +27,7 @@ export class Config {
     await loadEnvConfig();
   }
 
-  constructor(options?: ConfigOptions) {
+  constructor(options?: UserConfigOptions) {
     this.adapter = options?.adapter ?? new DefaultAdapter();
     this.resolved = mergeWithDefaults(defaultSpecnovaGenConfig, options?.config ?? {});
   }
@@ -49,7 +49,7 @@ export class Config {
    */
   public async load() {
     // load env config first & apply adapter
-    await Config.loadEnvConfig();
+    await UserConfig.loadEnvConfig();
     await this.applyAdapter();
     this.isLoaded = true;
     return this;

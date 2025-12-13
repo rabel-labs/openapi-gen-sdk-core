@@ -3,16 +3,26 @@
   "name": "@specnova/core",
   "version": "1.0.0",
   "description": "Core library for generating TypeScript SDKs from OpenAPI specs, managing patches, versions, and automation scripts.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "files": [
     "dist/lib",
     "dist/bin"
   ],
+  "bin": {
+    "openapi-gen": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/lib/index.js",
+      "require": "./dist/lib/index.cjs"
+    }
+  },
   "specnova": {
     "source": "/Users/june/Desktop/GitHub/openapi-gen-sdk-core/snapshots/1.0.0/normalized.json",
     "version": "1.0.0"
-  },
-  "bin": {
-    "openapi-gen": "dist/cli.js"
   },
   "scripts": {
     "build": "tsup",
@@ -30,10 +40,6 @@
     "tsup": "^8.5.1",
     "turbo": "^2.6.3",
     "typescript": "^5.9.3"
-  },
-  "license": "MIT",
-  "engines": {
-    "node": ">=22"
   },
   "dependencies": {
     "@hey-api/openapi-ts": "^0.88.0",

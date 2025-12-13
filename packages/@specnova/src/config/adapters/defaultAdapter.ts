@@ -1,29 +1,24 @@
-import { BaseAdapter, BaseAdapterOptionsWithFile, FileAdapter } from '@/config/adapters/base';
-import { Config } from '@/config/base';
-import { ResolvedSpecnovaConfig, SpecnovaConfig } from '@/config/type';
+import { BaseAdapterOptionsWithFile, FileAdapter } from '@/config/adapters/base';
+import { UserConfig, UserConfigOptions } from '@/config/base';
+import { UserConfigLoader } from '@/config/loader';
+import { ResolvedSpecnovaConfig } from '@/config/type';
 import { mergeWithDefaults } from '@/config/utils';
 
-import { loadConfig } from 'c12';
 export const defaultAdapterName = 'default';
 
-type ConfigOptions = {
-  adapter?: BaseAdapter;
-  baseConfig?: SpecnovaConfig;
-};
-
-export function defineConfig(ConfigOptions: ConfigOptions): ConfigOptions {
+export function defineConfig(ConfigOptions: UserConfigOptions): UserConfigOptions {
   return ConfigOptions;
 }
 
 export class DefaultAdapter extends FileAdapter {
   name: string = defaultAdapterName;
-  processor: typeof loadConfig<SpecnovaConfig> = loadConfig;
+  processor: typeof UserConfigLoader = UserConfigLoader;
   constructor(options?: BaseAdapterOptionsWithFile) {
     super(options);
   }
   async transform(externalConfig: ResolvedSpecnovaConfig) {
-    const resolvedConfig = await loadConfig<ConfigOptions>({
-      cwd: Config.getConfigRootDir(),
+    const resolvedConfig = await UserConfigLoader({
+      cwd: UserConfig.getConfigRootDir(),
       configFile: externalConfig.configFile,
       packageJson: true,
     });
@@ -40,7 +35,7 @@ export class DefaultAdapter extends FileAdapter {
     //-> apply default config
     const finalConfig = mergeWithDefaults(
       modifiedExternalConfig,
-      resolvedConfig.config.baseConfig ?? {},
+      resolvedConfig.config.config ?? {},
     );
     return finalConfig;
   }

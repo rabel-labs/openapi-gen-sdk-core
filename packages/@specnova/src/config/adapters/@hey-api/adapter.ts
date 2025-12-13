@@ -1,6 +1,6 @@
 import { HeyApiPlugin, heyApiPluginName } from '@/config/adapters/@hey-api/type';
 import { BaseAdapterOptionsWithFile, FileAdapter } from '@/config/adapters/base';
-import { Config } from '@/config/base';
+import { UserConfig } from '@/config/base';
 import { ResolvedSpecnovaConfig, SpecnovaConfig } from '@/config/type';
 import { mergeWithDefaults } from '@/config/utils';
 
@@ -31,7 +31,7 @@ export class HeyApiAdapater extends FileAdapter {
   }
   async transform(externalConfig: ResolvedSpecnovaConfig): Promise<ResolvedSpecnovaConfig> {
     const resolvedConfig = await this.processor({
-      cwd: Config.getConfigRootDir(),
+      cwd: UserConfig.getConfigRootDir(),
       configFile: this.filePath,
       packageJson: true,
     }).then((res) => {
