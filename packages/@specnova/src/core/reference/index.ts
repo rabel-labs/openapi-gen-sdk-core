@@ -5,6 +5,7 @@ import { SpecnovaSource } from '@/types';
 
 import { extname as pathExtname, resolve as path } from 'path';
 
+import { ParseResultElement } from '@swagger-api/apidom-core';
 import {
   options as emptyOptions,
   parse as emptyParse,
@@ -123,7 +124,14 @@ export async function parseSource(source: string): Promise<SpecnovaSource> {
   const parser = await buildParse();
   console.log('🔨 Extracting OpenAPI spec from:', source);
   //# Parse
-  const parsed = await parser(source);
+  let parsed: ParseResultElement | null;
+  try {
+    parsed = await parser(source);
+  } catch (error) {
+    console.error('❌ Failed to parse spec source', error);
+    throw error;
+  }
+
   if (parsed.errors.length > 0 || !parsed.result) {
     throw new Error('❌ Failed to parse spec');
   }

@@ -9,6 +9,7 @@ export default defineConfig([
     sourcemap: true,
     splitting: true,
     treeshake: true,
+    external: ['@rabel-lab/specnova', '@hey-api/openapi-ts'],
     outDir: 'dist/adapters',
     target: 'es2022',
   },
