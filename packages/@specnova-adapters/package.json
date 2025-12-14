@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@specnova/adapters",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "OpenAPI SpecNova Adapters",
   "scripts": {
     "build": "tsup",
