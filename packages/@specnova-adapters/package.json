@@ -1,6 +1,7 @@
 {
   "type": "module",
   "name": "@rabel-lab/specnova-adapters",
+  "private": false,
   "version": "0.0.1",
   "description": "OpenAPI SpecNova Adapters",
   "scripts": {
