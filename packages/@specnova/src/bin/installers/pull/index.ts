@@ -1,17 +1,15 @@
 import { defineCliInstaller } from '@/bin/installers/base';
+import { Snapshot } from '@/core';
+import { NpmPackage } from '@/npm';
 
 export default defineCliInstaller({
   name: 'pull',
   description: 'Download the latest version of the Spec origin & update the target path.',
-  argument: {
-    name: 'patch',
-    optional: true,
+  async action() {
+    const { source } = NpmPackage.getPackage().specnova;
+    const snapshot = await new Snapshot().load(source);
+    snapshot.saveAllAndCommit();
+    snapshot.setMain();
+    return (await snapshot.getSpecnovaSource()).info.version;
   },
-  options: {
-    patch: {
-      flag: 'p',
-      description: 'Sync patch file from OpenAPI spec',
-    },
-  },
-  async action(name, options) {},
 });

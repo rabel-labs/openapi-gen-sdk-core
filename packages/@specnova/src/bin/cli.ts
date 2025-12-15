@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-import installSync from '@/bin/installers/pull';
+import installFetch from '@/bin/installers/fetch';
+import installLookup from '@/bin/installers/lookup';
+import installPull from '@/bin/installers/pull';
 import { NpmPackage } from '@/npm';
 
 import { Command } from 'commander';
@@ -9,13 +11,8 @@ const program = new Command();
 program.name('specnova').description('SpecNova CLI').version(NpmPackage.getPackage().version);
 
 // Installers
-installSync(program);
-
-program
-  .command('test')
-  .description('Test')
-  .action(async () => {
-    console.log('test');
-  });
+installFetch(program);
+installPull(program);
+installLookup(program);
 
 program.parse(process.argv);

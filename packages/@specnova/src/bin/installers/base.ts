@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import fs from 'fs';
 
 type CLIOptionName = string;
 
@@ -31,11 +32,12 @@ type CLIArgument = {
   description?: string;
 };
 
-type CLIActionOptionsOnly<O extends CLIOption> = (args: CLIOptionResult<O>) => Promise<void>;
+type CLIActionOutput = Promise<void | string | boolean>;
+type CLIActionOptionsOnly<O extends CLIOption> = (args: CLIOptionResult<O>) => CLIActionOutput;
 type CLIOptionValueWithValue<O extends CLIOption> = (
   name: string,
   options: CLIOptionResult<O>,
-) => Promise<void>;
+) => CLIActionOutput;
 
 type CLIAction<O extends CLIOption, A extends CLIArgument> = A extends undefined
   ? CLIActionOptionsOnly<O>
@@ -44,9 +46,9 @@ type CLIAction<O extends CLIOption, A extends CLIArgument> = A extends undefined
 type InstallerOptions<O extends CLIOption, A extends CLIArgument> = {
   name: string;
   description: string;
-  argument?: A;
-  options: O;
   action: CLIAction<O, A>;
+  argument?: A;
+  options?: O;
 };
 
 type Installer = (program: Command) => void;
@@ -89,15 +91,30 @@ export function defineCliInstaller<O extends CLIOption, A extends CLIArgument>(
       cmd.argument(createArugmentFlag(installer.argument), installer.argument.description);
     }
     // Add options
-    const entries = Object.entries(installer.options);
-    for (const [name, value] of entries) {
-      cmd.option(
-        createOptionFlag({ name, ...value }),
-        value.description,
-        createOptionDefaultValue(value),
-      );
+    if (installer.options) {
+      const entries = Object.entries(installer.options);
+      for (const [name, value] of entries) {
+        cmd.option(
+          createOptionFlag({ name, ...value }),
+          value.description,
+          createOptionDefaultValue(value),
+        );
+      }
     }
     // End command
-    cmd.action(installer.action);
+    cmd.action(async (...args: [string, CLIOptionResult<O>]) => {
+      try {
+        const result = await installer.action(...args);
+        if (typeof result === 'boolean' || typeof result === 'string') {
+          if (process.env.GITHUB_OUTPUT) {
+            // Write to GitHub Actions output
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `${installer.name}=${result}\n`);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    });
   };
 }

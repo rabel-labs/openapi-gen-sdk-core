@@ -73,7 +73,10 @@ export class ParserCommander implements ParserCommanderImpl {
         try {
           normalizedElement = this[cn](normalizedElement, mergedConfig.normalized);
         } catch (e) {
-          console.error(`ParserCommander: failed to execute ${cn} command\n`, e);
+          console.error(
+            `ParserCommander: failed to execute "${cn}" command for element "${normalizedElement.element}"\n`,
+            e,
+          );
         }
       }
       return normalizedElement;
