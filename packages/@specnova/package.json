@@ -72,7 +72,8 @@
     "@swagger-api/apidom-parser-adapter-yaml-1-2": "1.0.0-rc.4",
     "@swagger-api/apidom-reference": "1.0.0-rc.4",
     "c12": "^3.3.2",
-    "commander": "^11.1.0"
+    "commander": "^11.1.0",
+    "zod": "^4.2.1"
   },
   "packageManager": "pnpm@10.19.0"
 }
