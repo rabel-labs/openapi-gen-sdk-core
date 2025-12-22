@@ -1,4 +1,4 @@
-import { UserConfig, UserConfigOptions } from '@/config';
+import { UserConfig } from '@/config';
 import { ResolvedSpecnovaConfig } from '@/config/type';
 import { hasNormalize } from '@/config/utils';
 import converter from '@/core/converter';
@@ -11,9 +11,9 @@ import { SpecnovaSource } from '@/types';
 import { join as pathJoin } from 'path';
 
 export class Snapshot {
-  //= initialize
+  //# initialize
+  private userConfig: Promise<UserConfig> = new UserConfig().load();
   private packageHandler: NpmPackage = new NpmPackage();
-  private userConfig: Promise<UserConfig> | UserConfig;
   private sourceUrl: string = '';
 
   //= OpenAPI source
@@ -21,17 +21,16 @@ export class Snapshot {
   //= Meta
   private meta: SnapshotMeta | null = null;
 
-  //= Config
+  //# Getters
+  //-> Config
   private async getFullConfig(): Promise<ResolvedSpecnovaConfig> {
     //= Appy user config to base config
     const userConfig = await Promise.resolve(this.userConfig);
     return userConfig.getConfig();
   }
-
-  //# Constructor
-  constructor(options?: UserConfigOptions) {
-    //= Apply config
-    this.userConfig = new UserConfig(options).load();
+  //-> User config
+  private async getUserConfig(): Promise<UserConfig> {
+    return await Promise.resolve(this.userConfig);
   }
   //-> Lazily compute and cache parsed OpenAPI source
   public async getSpecnovaSource() {
@@ -39,6 +38,11 @@ export class Snapshot {
     this.specnovaSource = await parseSource(this.sourceUrl);
     return this.specnovaSource;
   }
+
+  //# Constructor
+  constructor() {}
+
+  //# Functions
   //-> Ensure data
   private async ensureSpecnovaSource(): Promise<SpecnovaSource> {
     const specnovaSource = await this.getSpecnovaSource();
@@ -50,11 +54,10 @@ export class Snapshot {
     //!TODO: Validate meta
     return this.meta;
   }
-  /*
+  /**
    * Load the OpenAPI source;
-   * if meta is found, load the meta;
-   * otherwise, compute the snapshot path and create a new meta.
-   * @returns - this
+   * @param source - The OpenAPI source.
+   * @returns  - this
    */
   async load(source: string): Promise<this> {
     const config = await this.getFullConfig();
@@ -78,7 +81,8 @@ export class Snapshot {
     return this;
   }
   /**
-   * Load the main spec version from package.json
+   * Get the main spec version from package.json
+   *  Then, load the spec version.
    * @returns - this
    */
   async loadMain(): Promise<this> {
@@ -86,7 +90,8 @@ export class Snapshot {
     return this.load(source);
   }
   /**
-   * Load a specific spec version snapshot folder.
+   * Get a specific spec version snapshot folder.
+   *  Then, load the spec version.
    * @param version - The spec version.
    * @returns - this
    */
@@ -99,10 +104,10 @@ export class Snapshot {
     return this.load(source);
   }
   /**
-   * Save the OpenAPI source to the snapshot path.
-   * @returns - true if saved, false if failed
+   * Prepare the source to be saved.
+   * @returns - true if prepared, false if failed
    */
-  async saveSource(): Promise<boolean> {
+  async prepareSource(): Promise<boolean> {
     const specnovaSource = await this.ensureSpecnovaSource();
     const meta = this.ensureMeta();
     const { files } = meta.get();
@@ -119,10 +124,10 @@ export class Snapshot {
     }
   }
   /**
-   * Save the OpenAPI normalized source to the snapshot path.
-   * @returns - true if saved, false if failed
+   * Perpare the normalized source to be saved.
+   * @returns - true if prepared, false if failed
    */
-  async saveNormalized(): Promise<boolean> {
+  async prepareNormalized(): Promise<boolean> {
     const config = await this.getFullConfig();
     //# Check if normalization is needed
     if (!hasNormalize(config)) {
@@ -148,16 +153,18 @@ export class Snapshot {
     }
   }
   /**
-   * Save all files.
-   * @returns - true if saved, false if failed
+   * Prepare all files to be saved.
+   * @returns - { source, normalized }
    */
-  async saveAll() {
-    return Promise.all([this.saveSource(), this.saveNormalized()]).then(([source, normalized]) => {
-      return { source, normalized };
-    });
+  async prepareAll() {
+    return Promise.all([this.prepareSource(), this.prepareNormalized()]).then(
+      ([source, normalized]) => {
+        return { source, normalized };
+      },
+    );
   }
   /**
-   * Commit
+   * Commit changes to the snapshot folder.
    * @returns - true if saved, false if failed
    */
   async commit() {
@@ -165,16 +172,12 @@ export class Snapshot {
     return meta.commit();
   }
   /**
-   * Save all & commit
+   * Prepare all & commit changes to the snapshot folder.
    * @returns - true if saved, false if failed
    * @default - sync all
    */
-  async saveAllAndCommit() {
-    const result = await Promise.all([this.saveSource(), this.saveNormalized()]).then(
-      ([source, normalized]) => {
-        return { source, normalized };
-      },
-    );
+  async prepareAllAndCommit() {
+    const result = await this.prepareAll();
     if (result.source && result.normalized) {
       return this.commit();
     }
@@ -191,5 +194,13 @@ export class Snapshot {
       version: info.version,
     });
     return true;
+  }
+  /**
+   * Generate the selected snapshot to SDK.
+   * @returns - true if generated, false if failed
+   */
+  async generate() {
+    const userConfig = await this.getUserConfig();
+    return await userConfig.generate();
   }
 }

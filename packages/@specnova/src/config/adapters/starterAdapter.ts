@@ -9,14 +9,18 @@ export function defineConfig(ConfigOptions: UserConfigOptions): UserConfigOption
   return ConfigOptions;
 }
 
-export class DefaultAdapter extends FileAdapter<UserConfig> {
+/**
+ * Starter Adapter
+ * This adapter is used to load the default config.
+ * It will load the default config and apply the adapter if present.
+ */
+export class StarterAdapter extends FileAdapter<UserConfig> {
   name = defaultAdapterName;
-  filePath = (config: ResolvedSpecnovaConfig) => config.configFile;
   constructor() {
     super();
   }
   async transform(externalConfig: ResolvedSpecnovaConfig) {
-    const loadedConfig = await this.load(externalConfig);
+    const loadedConfig = await this.load();
     //-> Check adapter
     let modifiedExternalConfig = externalConfig;
     if (loadedConfig.adapter !== undefined && typeof loadedConfig.adapter.name !== this.name) {

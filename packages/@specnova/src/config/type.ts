@@ -3,11 +3,6 @@ import { SnapshotConfig } from '@/core/snapshot/config';
 
 export type SpecnovaConfig = {
   /**
-   * The config file path.
-   * @default 'specnova.config'
-   */
-  configFile?: 'specnova.config' | string;
-  /**
    * Syncronize the Specnova source version with the package.json version.
    * @default false
    */

@@ -8,7 +8,7 @@ export default defineCliInstaller({
   async action() {
     const { source } = NpmPackage.getPackage().specnova;
     const snapshot = await new Snapshot().load(source);
-    snapshot.saveAllAndCommit();
+    snapshot.prepareAllAndCommit();
     return (await snapshot.getSpecnovaSource()).info.version;
   },
 });

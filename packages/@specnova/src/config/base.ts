@@ -1,43 +1,52 @@
 import { BaseAdapter } from '@/config/adapters/base';
-import { DefaultAdapter } from '@/config/adapters/defaultAdapter';
+import { StarterAdapter } from '@/config/adapters/starterAdapter';
 import { defaultSpecnovaGenConfig } from '@/config/default';
-import { loadEnvConfig } from '@/config/env';
+import { Env, loadSafeEnvConfig } from '@/config/env';
 import { ResolvedSpecnovaConfig, SpecnovaConfig } from '@/config/type';
-import { mergeWithDefaults } from '@/config/utils';
-
-import { join as pathJoin } from 'path';
-
-type Adapter = BaseAdapter;
 
 export type UserConfigOptions = {
-  adapter?: Adapter;
+  adapter?: BaseAdapter;
   config?: Partial<SpecnovaConfig>;
 };
 
 export class UserConfig {
   private isLoaded = false;
-  public readonly adapter: Adapter;
-  private resolved: Promise<ResolvedSpecnovaConfig> | ResolvedSpecnovaConfig;
+  public readonly adapter: BaseAdapter;
+  private env: Env | null = null;
+  private resolved: ResolvedSpecnovaConfig;
 
-  //-> Static Helpers
-  static getConfigPath(subPath?: string): string {
-    const path = subPath ? subPath : process.env.SPECNOVA_CONFIG_PATH;
-    return pathJoin(process.cwd(), path ? path : '');
+  //# Static getters
+  public static async getEnv(): Promise<Env> {
+    return await loadSafeEnvConfig();
   }
-  static getConfigFile(): string {
-    return process.env.SPECNOVA_CONFIG_FILE ?? 'specnova.config';
+
+  //# Lazy load .Env
+  private async getEnv() {
+    if (this.env) return this.env;
+    this.env = await loadSafeEnvConfig();
+    return this.env;
   }
-  //-> Load .Env
-  private static async loadEnvConfig() {
-    await loadEnvConfig();
+
+  //# Getters
+  public getConfigPath(): string {
+    this.ensureLoaded();
+    return this.env!.SPECNOVA_CONFIG_PATH;
   }
-  constructor(options?: UserConfigOptions) {
-    this.adapter = options?.adapter ?? new DefaultAdapter();
-    this.resolved = mergeWithDefaults(defaultSpecnovaGenConfig, options?.config ?? {});
+  public getConfigFile(): string {
+    this.ensureLoaded();
+    return this.env!.SPECNOVA_CONFIG_FILE;
   }
+
+  //# Constructor
+  constructor() {
+    this.adapter = new StarterAdapter();
+    this.resolved = defaultSpecnovaGenConfig;
+  }
+
+  //# Functions
   /** Ensure is loaded */
   private ensureLoaded() {
-    if (!this.isLoaded) throw new Error('Config: config is not loaded');
+    if (!this.isLoaded || !this.env) throw new Error('Config: config is not loaded');
     return this.isLoaded;
   }
   /**
@@ -58,7 +67,7 @@ export class UserConfig {
    */
   public async load() {
     // load env config first & apply adapter
-    await UserConfig.loadEnvConfig();
+    await this.getEnv();
     await this.applyAdapter();
     this.isLoaded = true;
     return this;

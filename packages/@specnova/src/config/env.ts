@@ -3,9 +3,6 @@ import { mergeWithDefaults } from '@/config/utils';
 import { loadDotenv } from 'c12';
 import { resolve } from 'path';
 import * as z from 'zod/mini';
-type EnvConfig = {
-  SPECNOVA_CONFIG_PATH?: string;
-};
 
 const SAFE_RELATIVE_PATH_REGEX = /^[\/]?([A-z0-9-_+@]+\/)*([A-z0-9-_+@]+([A-z0-9-_+@]))$/;
 const SAFE_FILE_REGEX = /^([A-z0-9-_+\.]+(.{7}))$/;
@@ -33,7 +30,6 @@ function resolveSafeFile(file: string) {
 const zodFilePath = z.pipe(
   z.string().check(
     z.refine((val) => {
-      console.log('refined path', val);
       return SAFE_RELATIVE_PATH_REGEX.test(val);
     }, 'Invalid path'),
     z.trim(),
@@ -59,12 +55,16 @@ const envConfigSchema = z.object({
   SPECNOVA_CONFIG_FILE: zodFile,
 });
 
-const defaultEnv: z.infer<typeof envConfigSchema> = {
+export type Env = z.infer<typeof envConfigSchema>;
+
+const defaultEnv: Env = {
   SPECNOVA_CONFIG_PATH: process.cwd(),
   SPECNOVA_CONFIG_FILE: 'specnova.config',
 };
 
-export async function loadEnvConfig(): Promise<Required<EnvConfig>> {
+let cachedEnv: Env | null = null;
+export async function loadSafeEnvConfig(): Promise<Required<Env>> {
+  if (cachedEnv) return cachedEnv;
   const loadedEnv = (await loadDotenv({
     fileName: [
       '.env',
@@ -74,8 +74,9 @@ export async function loadEnvConfig(): Promise<Required<EnvConfig>> {
       '.env.development',
       '.env.production',
     ],
-  })) as EnvConfig;
+  })) as Env;
   const env = mergeWithDefaults(defaultEnv, loadedEnv);
   const result = envConfigSchema.parse(env);
+  cachedEnv = result;
   return result;
 }
