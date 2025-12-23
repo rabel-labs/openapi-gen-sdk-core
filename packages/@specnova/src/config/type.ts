@@ -1,28 +1,22 @@
-import { ParserConfig } from '@/core/parser/config';
-import { SnapshotConfig } from '@/core/snapshot/config';
+import { parserConfig } from '@/core/parser/config';
+import { snapshotConfig } from '@/core/snapshot/config';
 
-export type SpecnovaConfig = {
-  /**
-   * Syncronize the Specnova source version with the package.json version.
-   * @default false
-   */
-  syncVersion?: boolean;
-  /*
-   * Merge inputs.
-   * @default false
-   */
-  mergeInputs?: boolean;
+import z from 'zod';
+
+export const specnovaConfig = z.object({
   /**
    * The parser configuration.
    * @default {...}
    */
-  normalized?: ParserConfig | null;
+  normalized: parserConfig.nullable().optional().default(null),
   /**
    * The snapshot configuration.
    * @default {...}
    */
-  snapshot?: SnapshotConfig;
-};
+  snapshot: snapshotConfig,
+});
+
+export type SpecnovaConfig = z.infer<typeof specnovaConfig>;
 
 export type Resolved<T> = T & {
   [K in keyof T]-?: Resolved<T[K]>;

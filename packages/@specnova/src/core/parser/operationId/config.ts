@@ -1,38 +1,39 @@
 import { Resolved } from '@/config/type';
 
+import z from 'zod';
+
 export type IgnoreFunc = (path: string, method: string) => boolean;
 
-export type ParserOperationIdConfig = {
+export const parserOperationIdConfig = z.object({
   /**
    * Word to use as root path ( '/'  => 'root' )
    * @default 'root'
    */
-  rootWord?: string;
+  rootWord: z.string().optional(),
   /**
    * 'prefix' => {method}{...}
    * 'suffix' => {...}{method}
    * @default 'prefix'
    */
-  methodPosition?: 'prefix' | 'suffix';
+  methodPosition: z.enum(['prefix', 'suffix']).optional(),
   /**
    * 'snake' | 'camel' | 'pascal' | 'kebab'
    * @default 'camel'
    */
-  case?: 'snake' | 'camel' | 'pascal' | 'kebab';
+  case: z.enum(['snake', 'camel', 'pascal', 'kebab'] as const).optional(),
   /**
    * 'by' => by{paramName}
    * 'inline' => {paramName}
    * @default 'by'
    */
-  param?: 'by' | 'inline';
+  param: z.enum(['by', 'inline'] as const).optional(),
   /**
    * Skip refactoring if function returns true
    * @default undefined
    */
-  ignore?: boolean | IgnoreFunc;
-  //!TODO:
-  //pluralize?: boolean // product/{id} → products/{id}
-};
+  ignore: z.union([z.boolean(), z.function()]).optional(),
+});
+export type ParserOperationIdConfig = z.infer<typeof parserOperationIdConfig>;
 
 export const defaultParserOperationIdConfig: Resolved<ParserOperationIdConfig> = {
   rootWord: 'root',

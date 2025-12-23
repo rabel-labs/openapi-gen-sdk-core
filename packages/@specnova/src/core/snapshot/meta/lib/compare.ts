@@ -1,14 +1,16 @@
 import crypto from 'crypto';
 import { createReadStream } from 'fs';
+import z from 'zod';
 
-export type Sha256String = string;
+export const sha256String = z.hash('sha256');
+export type Sha256String = z.infer<typeof sha256String>;
 
 export async function digestFile(filePath: string): Promise<Sha256String> {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('sha256');
     const stream = createReadStream(filePath);
     stream.on('data', (chunk) => hash.update(chunk));
-    stream.on('end', () => resolve(hash.digest('hex')));
+    stream.on('end', () => resolve(sha256String.parse(hash.digest('hex'))));
     stream.on('error', reject);
   });
 }
@@ -17,7 +19,7 @@ export async function digestString(text: string): Promise<Sha256String> {
   try {
     const hash = crypto.createHash('sha256');
     hash.update(text);
-    return Promise.resolve(hash.digest('hex'));
+    return Promise.resolve(sha256String.parse(hash.digest('hex')));
   } catch (e) {
     return Promise.reject(e);
   }
@@ -25,37 +27,28 @@ export async function digestString(text: string): Promise<Sha256String> {
 
 /**
  * Compare a sha256 string to a target file.
- * @param digests - Promise<[Sha256String, Sha256String]>
+ * @param rawDigests - Promise<[Sha256String, Sha256String]>
  * @returns - Resolve -> true if identical
  *            Reject -> Failed
  */
 export async function compareSha256(
-  digests: Promise<Sha256String> | Sha256String,
+  rawDigests: Promise<Sha256String> | Sha256String,
   filePath: string,
 ): Promise<boolean> {
   try {
     //# Load digest
-    const [digest] = await Promise.race([digests]);
-    switch (typeof digest) {
-      //... accepted types
-      case 'string':
-        break;
-      //... invalid
-      default:
-        return Promise.reject();
+    const [digest] = await Promise.race([rawDigests]);
+    const parsedDigest = sha256String.safeParse(digest);
+    if (!parsedDigest.success) {
+      return Promise.reject();
     }
     //# Load file to digest
-    const fileDigest = await digestFile(filePath);
-    switch (typeof fileDigest) {
-      //... accepted types
-      case 'string':
-        break;
-      //... invalid
-      default:
-        return Promise.reject();
+    const fileDigest = sha256String.safeParse(await digestFile(filePath));
+    if (!fileDigest.success) {
+      return Promise.reject();
     }
     //# Compare
-    return Promise.resolve(digest === fileDigest);
+    return Promise.resolve(parsedDigest.data === fileDigest.data);
   } catch (error) {
     //# Any error
     Promise.reject(error);

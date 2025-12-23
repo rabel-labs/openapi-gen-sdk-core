@@ -1,47 +1,34 @@
 import { ResolvedSpecnovaConfig } from '@/config/type';
 import converter from '@/core/converter';
-import { Info } from '@/core/extracter/info/type';
-import { SnapshotFileExtension, SnapshotFileSlots } from '@/core/snapshot/config';
+import { snapshotConfig, SnapshotFileSlots, snapshotFileSlots } from '@/core/snapshot/config';
 import { buildMetaFile, buildMetaPath, buildMetaSourceFiles } from '@/core/snapshot/meta/lib/build';
-import { compareSha256, digestString, Sha256String } from '@/core/snapshot/meta/lib/compare';
+import { compareSha256, digestString, sha256String } from '@/core/snapshot/meta/lib/compare';
 import { SpecnovaSource } from '@/types';
+import { relativePathSchema } from '@/types/files';
 
 import { readFileSync } from 'fs';
 import { mkdir, rename, rm, writeFile } from 'fs/promises';
 import { join as pathJoin } from 'path';
 import { isDeepStrictEqual } from 'util';
-import { z } from 'zod/mini';
+import { z } from 'zod';
 
 const TEMP_FOLDER = '.tmp-write';
-
-export type SnapshotMetaFiles = {
-  names: {
-    [key in SnapshotFileSlots]: string;
-  };
-  extensions: {
-    [key in SnapshotFileSlots]: SnapshotFileExtension;
-  };
-};
-
-export type SnapshotMetaHashes = {
-  [key in Exclude<SnapshotFileSlots, 'meta'>]?: Promise<Sha256String> | Sha256String;
-};
-
-type SnapshotMetaData = {
-  info: Info;
-  path: string;
-  config: ResolvedSpecnovaConfig;
-  files: SnapshotMetaFiles;
-  sha256: SnapshotMetaHashes;
-};
 
 export const snapshotMetaDataSchema = z.object({
   info: z.any(),
   path: z.string(),
-  config: z.any(),
-  files: z.any(),
-  sha256: z.any(),
+  files: z.object({
+    names: snapshotConfig.shape.names,
+    extensions: snapshotConfig.shape.extensions,
+  }),
+  sha256: z.partialRecord(
+    snapshotFileSlots.exclude(['meta']),
+    z.union([sha256String, z.promise(sha256String)]),
+  ),
 });
+
+type SnapshotMetaData = z.infer<typeof snapshotMetaDataSchema>;
+type SnapshotMetaHashes = z.infer<typeof snapshotMetaDataSchema.shape.sha256>;
 
 type SnapshotMetaDigestors = {
   [key in SnapshotFileSlots]?: string;
@@ -217,7 +204,6 @@ export class SnapshotMeta extends SnapshotMetaImpl {
         info: specnovaSource.info,
         path: buildMetaPath(config, specnovaSource.info.version),
         files: buildMetaSourceFiles(config, specnovaSource),
-        config,
         sha256: {
           source: Promise.resolve(''),
           normalized: Promise.resolve(''),
@@ -229,8 +215,8 @@ export class SnapshotMeta extends SnapshotMetaImpl {
   }
 
   static fromFile(path: string) {
-    //!TODO: validate file via zod
-    const text = readFileSync(path, 'utf8');
+    const relativePath = relativePathSchema.parse(path);
+    const text = readFileSync(relativePath, 'utf8');
     const parsedMeta = snapshotMetaDataSchema.parse(JSON.parse(text));
     return new this({ meta: parsedMeta });
   }
@@ -316,7 +302,6 @@ export class SnapshotMeta extends SnapshotMetaImpl {
       thisData.path === otherData.path,
       thisData.info.version === otherData.info.version,
       //# config
-      isDeepStrictEqual(thisData.config, otherData.config),
       //# sha256
       await Promise.race(sha256Compares),
     ];

@@ -1,115 +1,72 @@
 import { Resolved } from '@/config/type';
+import { snapshotFileExtension } from '@/types/files';
+
+import z from 'zod';
 
 const SNAPSHOTS_DIR = '.snapshots';
 const SOURCE_FILENAME = 'source';
 const NORMALIZED_FILENAME = 'normalized';
 const META_FILENAME = 'meta';
 
-const InferKey = 'infer' as const;
-type InferKey = typeof InferKey;
-/**
- * Snapshot version strategy.
- */
-const VersionStrategyName = {
-  infer: InferKey,
-  manual: 'manual',
-} as const;
-type VersionStrategyName = keyof typeof VersionStrategyName;
-type VersionStrategyInfer = typeof VersionStrategyName.infer;
-type VersionStrategyManual = {
-  type: 'manual';
-  version: string | (() => string);
-};
-type VersionStrategy = VersionStrategyInfer | VersionStrategyManual;
-/**
- * Snapshot folders
- */
-type SnapshotFolderRoot = string;
-type SnapshotFolderDetailed = {
-  root: SnapshotFolderRoot;
-  subfolder: string;
-};
 /**
  * Snapshot files
  **/
-export const SnapshotFileSlots = {
-  source: 'source',
-  normalized: 'normalized',
-  meta: 'meta',
-} as const;
-export type SnapshotFileSlots = keyof typeof SnapshotFileSlots;
+export const snapshotFileSlots = z.enum(['source', 'normalized', 'meta'] as const);
+export type SnapshotFileSlots = z.infer<typeof snapshotFileSlots>;
 
-type SnapshotFiles = {
-  [key in SnapshotFileSlots]: string;
-};
-
-/**
- * Snapshot file extensions.
- */
-const SnapshotFileExtensionName = {
-  json: 'json',
-  yaml: 'yaml',
-} as const;
-export type SnapshotFileExtension = keyof typeof SnapshotFileExtensionName;
-
-type SnapshotExtensions = {
-  [key in Exclude<SnapshotFileSlots, 'meta'>]: SnapshotFileExtension | InferKey;
-} & {
-  meta: typeof SnapshotFileExtensionName.json;
-};
-
-type SnapshotFolder = SnapshotFolderRoot | SnapshotFolderDetailed;
-export type SnapshotConfig = {
+export const snapshotConfig = z.object({
   /**
    * Enable snapshot.
    * @default true
    */
-  enabled?: boolean;
+  enabled: z.boolean().optional().default(true),
   /**
    * Snapshot root folder.
-   * @default {...}
+   * @default 'root'
    */
-  folder?: SnapshotFolder;
+  folder: z
+    .union([z.string(), z.object({ root: z.string(), subfolder: z.string() })])
+    .default('root'),
   /**
    * Snapshot files.
    * @default {...}
    */
-  files?: SnapshotFiles;
+  names: z.record(snapshotFileSlots, z.string()).default({
+    source: SOURCE_FILENAME,
+    normalized: NORMALIZED_FILENAME,
+    meta: META_FILENAME,
+  }),
   /**
    * Snapshot file extensions.
    * @default {...}
    */
-  extensions?: SnapshotExtensions;
-  /**
-   * The snapshot version strategy.
-   * @default {...}
-   */
-  versionStrategy?: VersionStrategy;
-};
+  extensions: z
+    .object({
+      source: snapshotFileExtension,
+      normalized: snapshotFileExtension,
+      meta: snapshotFileExtension.extract(['json']),
+    })
+    .strict()
+    .default({
+      source: 'infer',
+      normalized: 'json',
+      meta: 'json',
+    }),
+});
 
-/**
- * Type guard for SnapshotFileExtensionName
- * @param extension - SnapshotFileExtensionName
- */
-export function isSnapshotFileExtensionName(extension: string): extension is SnapshotFileExtension {
-  return (
-    typeof extension === 'string' &&
-    (extension === SnapshotFileExtensionName.json || extension === SnapshotFileExtensionName.yaml)
-  );
-}
+export type SnapshotConfig = z.infer<typeof snapshotConfig>;
 
 export const defaultSnapshotConfig: Resolved<SnapshotConfig> = {
   enabled: true,
   folder: SNAPSHOTS_DIR,
-  files: {
+  names: {
     source: SOURCE_FILENAME,
     normalized: NORMALIZED_FILENAME,
     meta: META_FILENAME,
   },
   extensions: {
-    source: InferKey,
-    normalized: SnapshotFileExtensionName.json,
+    source: 'infer',
+    normalized: 'json',
     meta: 'json',
   },
-  versionStrategy: VersionStrategyName.infer,
 } as const;

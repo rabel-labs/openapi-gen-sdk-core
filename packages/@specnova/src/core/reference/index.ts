@@ -1,7 +1,7 @@
 import { getResolvedConfig } from '@/config/resolved';
 import { infoExtracter } from '@/core/extracter';
-import { isSnapshotFileExtensionName } from '@/core/snapshot/config';
 import { SpecnovaSource } from '@/types';
+import { strictSnapshotFile } from '@/types/files';
 
 import { extname as pathExtname, resolve as path } from 'path';
 
@@ -138,9 +138,12 @@ export async function parseSource(source: string): Promise<SpecnovaSource> {
   //# Compute
   const isExternal = source.startsWith('http://') || source.startsWith('https://');
   const pathname = isExternal ? new URL(source).pathname : source;
-  const extension = pathExtname(pathname).toLowerCase().replace('.', '');
+  const extension = strictSnapshotFile.safeParse(
+    pathExtname(pathname).toLowerCase().split('.').pop(),
+  );
+
   //# Validate
-  if (!isSnapshotFileExtensionName(extension)) {
+  if (!extension.success) {
     throw new Error(`❌ Snapshot: invalid file extension, ${extension}`);
   }
   if (!parsed.result) {
@@ -155,7 +158,7 @@ export async function parseSource(source: string): Promise<SpecnovaSource> {
     parseResult: parsed.result,
     info,
     source,
-    extension,
+    extension: extension.data,
     isExternal,
   };
 }

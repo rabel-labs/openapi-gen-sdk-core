@@ -7,6 +7,7 @@ import { parseSource } from '@/core/reference';
 import { SnapshotMeta } from '@/core/snapshot/meta/base';
 import { NpmPackage } from '@/npm/base';
 import { SpecnovaSource } from '@/types';
+import { relativePathSchema } from '@/types/files';
 
 import { join as pathJoin } from 'path';
 
@@ -95,8 +96,7 @@ export class Snapshot {
     const newMeta = SnapshotMeta.fromFile(filePath);
     // -> load source
     const { path, files } = newMeta.get();
-    //!TODO: Ensure path is relative and unescaped
-    const fullSourcePath = pathJoin(process.cwd(), path, files.names.source);
+    const fullSourcePath = relativePathSchema.parse(pathJoin(path, files.names.source));
     this.sourceUrl = fullSourcePath;
     await this.ensureSpecnovaSource();
     this.meta = newMeta;
@@ -142,8 +142,13 @@ export class Snapshot {
     const specnovaSource = await this.ensureSpecnovaSource();
     const meta = this.ensureMeta();
     const { files } = meta.get();
+    //# Extension check
+    let extension = specnovaSource.extension;
+    if (files.extensions.normalized !== 'infer') {
+      extension = files.extensions.normalized;
+    }
     //# Write source
-    const sourceOutText = converter.fromApiDom(specnovaSource.parseResult, files.extensions.source);
+    const sourceOutText = converter.fromApiDom(specnovaSource.parseResult, extension);
     try {
       meta.addDocument({
         source: sourceOutText,
@@ -171,8 +176,13 @@ export class Snapshot {
     const { files } = meta.get();
     //# Apply normalization
     const normalizedElement = parserCommander.byConfig(specnovaSource.parseResult, config);
+    //# Extension check
+    let extension = specnovaSource.extension;
+    if (files.extensions.normalized !== 'infer') {
+      extension = files.extensions.normalized;
+    }
     //# Write normalized
-    const normalizedOutText = converter.fromApiDom(normalizedElement, files.extensions.normalized);
+    const normalizedOutText = converter.fromApiDom(normalizedElement, extension);
     try {
       meta.addDocument({
         normalized: normalizedOutText,
