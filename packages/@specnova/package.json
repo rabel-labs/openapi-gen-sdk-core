@@ -30,9 +30,9 @@
     }
   },
   "specnova": {
-    "source": "https://gist.githubusercontent.com/Montreal-Dev/233d4ecca97559d2372bd3e8b9c30fda/raw/2e053b8ed0ee78ee6667a2e2108f84de414a72d8/openapi.json",
+    "source": "https://gist.githubusercontent.com/Montreal-Dev/db888247f6f3cd10413c8f2a8870a0de/raw/963ce1fb466410f89ac5e624ef87c6bab9f74bf7/openapi_semver_tag.json",
     "branch": {
-      "target": ".snapshots/1.0.0/meta.json"
+      "target": ".snapshots/1.2.3-alpha.4+exp.sha.5114f85/meta.json"
     }
   },
   "scripts": {

@@ -35,7 +35,6 @@ export const zodWithTransformativeCheck = <T extends ZodType>(
     //# If validator is present, try to validate
     if (validator) {
       if (validator(transformedValue)) {
-        console.log('validator passed');
         return transformedValue;
       }
     }
