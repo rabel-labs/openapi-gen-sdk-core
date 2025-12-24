@@ -12,11 +12,11 @@ const specNovaPackageSchema = z.object({
   }),
 });
 
-export type SpecNovaInfo = z.infer<typeof specNovaPackageSchema>;
+export type SpecNovaPackage = z.infer<typeof specNovaPackageSchema>;
 
 type PackageJson = {
   version: Semver;
-  specnova: SpecNovaInfo;
+  specnova: SpecNovaPackage;
 };
 
 export class NpmPackage {
@@ -33,7 +33,7 @@ export class NpmPackage {
     this.packageJson = NpmPackage.getPackage();
   }
 
-  async editPackage(values: Partial<SpecNovaInfo>) {
+  async editPackage(values: Partial<SpecNovaPackage>) {
     const pkg = this.packageJson;
     // Merge values
     pkg.specnova = specNovaPackageSchema.parse({

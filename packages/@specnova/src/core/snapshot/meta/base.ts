@@ -1,7 +1,12 @@
 import { ResolvedSpecnovaConfig } from '@/config/type';
 import converter from '@/core/converter';
 import { snapshotConfig, SnapshotFileSlots, snapshotFileSlots } from '@/core/snapshot/config';
-import { buildMetaFile, buildMetaPath, buildMetaSourceFiles } from '@/core/snapshot/meta/lib/build';
+import {
+  buildMetaFile,
+  buildMetaOrigin,
+  buildMetaPath,
+  buildMetaSourceFiles,
+} from '@/core/snapshot/meta/lib/build';
 import { compareSha256, digestString, sha256String } from '@/core/snapshot/meta/lib/compare';
 import { SpecnovaSource } from '@/types';
 import { relativePathSchema } from '@/types/files';
@@ -21,6 +26,11 @@ export const snapshotMetaDataSchema = z.object({
   files: z.object({
     names: snapshotConfig.shape.names,
     extensions: snapshotConfig.shape.extensions,
+  }),
+  origin: z.object({
+    source: z.url(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
   }),
   sha256: z.partialRecord(
     snapshotFileSlots.exclude(['meta']),
@@ -131,12 +141,14 @@ class SnapshotMetaImpl {
   }
 
   private async endSubmit() {
+    const revertUpdateTime = this.editData.origin.updatedAt;
     //# Prepare data;
     this.ensureLocked();
     const documentEntries = Object.entries(this.editFiles);
     const tempFolder = pathJoin(this.editData.path, TEMP_FOLDER);
     const destFolder = this.editData.path;
     const files = this.editData.files;
+    this.editData.origin.updatedAt = new Date();
     await mkdir(tempFolder, { recursive: true });
     try {
       //# Write all files into temp folder
@@ -162,6 +174,7 @@ class SnapshotMetaImpl {
       this.clear();
     } catch (e) {
       //# Cleanup
+      this.editData.origin.updatedAt = revertUpdateTime;
       await rm(tempFolder, { recursive: true, force: true });
       this.lock = false;
       throw e;
@@ -205,6 +218,7 @@ export class SnapshotMeta extends SnapshotMetaImpl {
         info: specnovaSource.info,
         path: buildMetaPath(config, specnovaSource.info.version),
         files: buildMetaSourceFiles(config, specnovaSource),
+        origin: buildMetaOrigin(config, specnovaSource),
         sha256: {
           source: Promise.resolve(''),
           normalized: Promise.resolve(''),

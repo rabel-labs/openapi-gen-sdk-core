@@ -11,7 +11,6 @@ const META_FILE = `meta.${META_EXT}`;
 
 export function buildMetaPath(config: ResolvedSpecnovaConfig, rawVersion: Semver): string {
   const version = semver.parse(rawVersion);
-  //!TODO: Ensure semver version is used
   const snapshotConfig = config.snapshot;
   const rootDir =
     typeof snapshotConfig.folder === 'string' ? snapshotConfig.folder : snapshotConfig.folder.root;
@@ -75,4 +74,16 @@ export function buildMetaSourceFiles(
     extensions,
     names,
   };
+}
+
+export function buildMetaOrigin(
+  config: ResolvedSpecnovaConfig,
+  specnovaSource: SpecnovaSource,
+): z.infer<typeof snapshotMetaDataSchema.shape.origin> {
+  const now = new Date();
+  return snapshotMetaDataSchema.shape.origin.parse({
+    source: specnovaSource.source,
+    createdAt: now,
+    updatedAt: now,
+  });
 }

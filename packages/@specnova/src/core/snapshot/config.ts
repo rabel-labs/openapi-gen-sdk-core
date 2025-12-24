@@ -22,11 +22,11 @@ export const snapshotConfig = z.object({
   enabled: z.boolean().optional().default(true),
   /**
    * Snapshot root folder.
-   * @default 'root'
+   * @default '.snapshots'
    */
   folder: z
     .union([z.string(), z.object({ root: z.string(), subfolder: z.string() })])
-    .default('root'),
+    .default(SNAPSHOTS_DIR),
   /**
    * Snapshot files.
    * @default {...}
